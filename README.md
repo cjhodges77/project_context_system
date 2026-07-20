@@ -1,0 +1,59 @@
+# Project Context System
+
+The Project Context System (PCS) is a repository-native knowledge format for preserving project state, decisions, feedback, and reusable lessons across LLM sessions. It combines Markdown, YAML frontmatter, Obsidian wikilinks, Git, and Graphify.
+
+## Goals
+
+- Give agents a small, reliable starting context.
+- Preserve rationale without copying canonical product documentation.
+- Turn task-specific discoveries into reusable lessons.
+- Keep knowledge portable, reviewable, and version-controlled.
+- Separate project history from code-structure analysis.
+
+## Repository layout
+
+```text
+project/
+├── CLAUDE.md or AGENTS.md
+├── docs/
+│   ├── specs/
+│   ├── plans/
+│   ├── runbooks/
+│   └── reference/
+├── .claude/
+│   ├── agents/
+│   ├── hooks/
+│   └── memory/                  # PCS bundle root
+│       ├── index.md             # declares pcs_version
+│       ├── log.md               # optional portable history
+│       ├── project/index.md
+│       ├── feedback/index.md
+│       ├── learnings/index.md
+│       ├── references/index.md
+│       └── archive/index.md
+├── graphify-out/
+├── .graphifyignore
+└── scripts/setup_vault_links.sh
+```
+
+`.claude/memory/` is the self-contained PCS bundle and unit of distribution. Repository docs and source remain outside the bundle and are identified through frontmatter resources. Directories provide stable categories, lowercase `index.md` files provide progressive disclosure, Obsidian wikilinks provide relationships, and Git provides chronology, attribution, review, and rollback.
+
+## Knowledge layers
+
+1. **Operating contract** — `CLAUDE.md` or `AGENTS.md` defines behavior, tools, quality gates, and update obligations.
+2. **Live memory** — the root index and project memos summarize active state and route retrieval.
+3. **Durable knowledge** — feedback, learnings, and references preserve reusable rules and evidence.
+4. **Canonical documentation** — specs, plans, runbooks, and reference docs remain authoritative for product behavior.
+5. **Code graph** — Graphify answers structural code questions without replacing project history.
+
+## Relationship to OKF
+
+PCS uses the same interoperable core ideas as Google's Open Knowledge Format: one Markdown file per concept, YAML frontmatter with a required `type`, a declared format version, reserved lowercase `index.md` and optional `log.md`, first-class references, UTF-8 content, and progressive disclosure. PCS uses `pcs_version` rather than `okf_version` and deliberately retains Obsidian wikilinks for internal relationships.
+
+## Read next
+
+- [Format and lifecycle](FORMAT.md)
+- [Methodology](METHODOLOGY.md)
+- [Tooling](TOOLING.md)
+- [Adoption guide](ADOPTION.md)
+- [Documentation index](index.md)
