@@ -36,6 +36,18 @@ Update the appropriate layer when:
 6. **Graph** — Graphify is refreshed when structural changes make it stale.
 7. **History** — shipped or stale state is archived, cited, or superseded without losing rationale.
 
+## Concurrent sessions and reconciliation
+
+Parallel sessions on one repository will edit the same indexes, and a bundle-maintenance branch must continuously reconcile their merges. Rules proven under that load:
+
+- **Isolate the true delta before touching an index conflict.** A restructured index conflicts wall-to-wall against any edit to its predecessor, but diffing the other line of work *since the last reconciliation point* usually reduces the conflict to one or two genuinely new entries. Resolve to the restructure, then file the delta — never hand-weave a 300-line conflict body.
+- **Prove nothing lost, mechanically.** After every reconciliation: each migrated entry present exactly once across the successor indexes, each leaf file intact. Grep counts, not confidence.
+- **Expect corrected lines to resurrect.** A status line fixed in one merge returns stale from every branch that forked before the fix — the same obsolete line can need dropping three or four times. Keep a short list of known-stale lines and re-check it on each merge; do not assume a correction is durable.
+- **Correct status drift only when it is drift.** A memo line saying a change is open is *true* while its branch is open — correcting it early introduces drift instead of fixing it. Correct open → merged when the work actually lands, and carry known caveats (a deliberately-red gate, an undeployed flag) through the correction rather than dropping them.
+- **Concurrent sessions can mint the same concept name** with different bodies — an add/add conflict neither session can see coming. Hold both texts (one as body, one as verbatim appendix) until the canonical line resolves the collision, then adopt the owner's resolution wholesale; a structurally different private version guarantees a second conflict later.
+- **Audit for unattributable deltas.** Interim conflict resolutions made while a source branch was still moving go stale when that branch evolves; the residue silently reverts newer canonical content. Before publishing a bundle-maintenance branch, diff it against canonical and require every file outside the bundle to be attributable to the branch's own commits — anything else is residue to drop, not history to keep.
+- **Fold in a moving branch only after it stops.** A branch pushed within the current cycle is a moving target: defer one cycle; reconcile when its tip holds still. If unmerged work must be folded in early, record the resulting merge-order constraint somewhere the merger will see it — a queue position stated only in a commit message does not gate anything.
+
 ## Authority and conflict
 
 Canonical repository docs define product behavior. PCS explains active state, rationale, and retrieval paths. Source code and tests establish implementation reality. When artifacts disagree, verify current behavior, update the authoritative layer, and record the resolution rather than preserving contradictory summaries.

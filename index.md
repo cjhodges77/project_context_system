@@ -15,6 +15,7 @@
 - [Learning note](templates/learning.template.md)
 - [Feedback note](templates/feedback.template.md)
 - [Reference concept](templates/reference.template.md)
+- [Domain sub-index](templates/domain_index.template.md)
 
 ## Bundle concept types
 
