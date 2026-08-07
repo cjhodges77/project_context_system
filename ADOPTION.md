@@ -43,7 +43,15 @@ Keep extraction and LLM-based relabeling as separate commands.
 
 ## 8. Add enforcement
 
-Optionally add a stop hook that prompts for the seven-point audit in [METHODOLOGY.md](METHODOLOGY.md). CI can check `pcs_version`, frontmatter, duplicate names, Obsidian links, index coverage, citations, graph freshness, and privacy exclusions.
+Vendor [`scripts/pcs_lint.py`](scripts/pcs_lint.py) and make it a dependency of the lint or test target the project already runs, not a target of its own:
+
+```bash
+python3 scripts/pcs_lint.py .claude/memory --write-baseline --baseline .claude/memory/.pcs-lint-baseline
+```
+
+Baseline first. An existing bundle will have findings, and a check that is red the day it lands gets bypassed; baselining binds the rule to new work and leaves the back catalogue to be cleared deliberately. Then drop entries from the baseline file as you fix them.
+
+Optionally add a stop hook that prompts for the seven-point audit in [METHODOLOGY.md](METHODOLOGY.md). CI can additionally check `pcs_version`, frontmatter, duplicate names, Obsidian links, index coverage, citations, graph freshness, and privacy exclusions — none of which the linter implements.
 
 ## 9. First use
 

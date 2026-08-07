@@ -44,6 +44,20 @@ Shape checks catch the drift that size checks miss. A character budget bounds ho
 
 The third is the one to get right, because the obvious implementation of it is wrong. Keying on character class — *flag any entry containing a number, a currency amount, a commit SHA, or a status word* — is a one-line regular expression, and measured against a real bundle it fired on more than half the entries of an index that was working fine. Most of those numbers were fixed observations that no other document owns and that will never change. Key on ownership instead: flag a value some other layer maintains, leave a value that is simply a fact about the past.
 
+### Reference implementation
+
+`scripts/pcs_lint.py` implements the size and shape checks above. It is stdlib-only Python with no dependencies, meant to be vendored into a consuming project and hung off that project's existing lint target:
+
+```bash
+python3 scripts/pcs_lint.py .claude/memory
+```
+
+`--selftest` exercises the rules themselves rather than a bundle, so a change to a pattern has something that fails when it is wrong. `--write-baseline` records an existing corpus's findings so the rule binds new work only.
+
+Two scoping decisions in it are worth carrying into any reimplementation, because both were forced by running it on a real bundle. **The derived-value check applies to indexes, not leaves** — a learning's evidence is *meant* to carry concrete measurements, they describe what happened once, and they never drift; scanning leaves produced hundreds of findings on a healthy bundle. **A missing status header is opt-in** (`--require-status`) while a duplicated one always fails: the second is drift, the first is a convention the bundle may not have adopted, and defaulting it on reddens every memo in an existing corpus.
+
+It does not implement the structural checks in the list above — frontmatter validity, `pcs_version`, duplicate names, wikilink resolution, index coverage, and citation coverage are all still enforced by review alone.
+
 ## Designing a check that survives
 
 A check is worth building only if it is still running in a month. Four properties decide that, and each has a documented failure behind it.
