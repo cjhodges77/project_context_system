@@ -15,6 +15,10 @@ metadata:
 
 **Status:** active | investigation | blocked | parked | shipped | archival-candidate
 
+<!-- The single source of status: everything else links here. Update it in the same
+     change that changes the status. Name the command for a computable figure, and
+     the test that fails, rather than transcribing either. -->
+
 <objective and background>
 
 ## Decisions

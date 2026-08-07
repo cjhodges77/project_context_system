@@ -17,6 +17,8 @@ Use progressive disclosure rather than loading the entire repository:
 
 Treat context maintenance as part of delivery, not a later cleanup task. Record outcomes and rationale compactly. Link related bundle concepts with Obsidian wikilinks and identify the detailed spec, plan, diff, test, report, or external source instead of copying it.
 
+Write judgements, not derived values. Before transcribing a status, a count, a size, or a finding into a second document, check whether a link or a command would carry it instead — see "Derived values" in [FORMAT.md](FORMAT.md). A value that some other layer owns is the part most likely to be wrong by the end of the same session that wrote it.
+
 Update the appropriate layer when:
 
 - active scope, status, or an open question changes;
@@ -35,6 +37,8 @@ Update the appropriate layer when:
 5. **Living docs** — specs, plans, roadmaps, runbooks, and help are updated where authoritative behavior changed.
 6. **Graph** — Graphify is refreshed when structural changes make it stale.
 7. **History** — shipped or stale state is archived, cited, or superseded without losing rationale.
+
+Two of these points fail in opposite directions, and each is a check on the other. **Memory** fails by restating what another layer owns, so audit it by asking what in the bundle now says a thing twice. **Learnings** fails the other way: an incident record can crowd out the lesson, because writing down what happened *feels* like it covered the point. Ask two questions there rather than one — does this have a memo to point at, **and** did it teach something reusable that belongs in a leaf? Filing three specific flaky tests as project state reads as coverage; the transferable rule — an absolute timing or pixel budget asserted inside a large suite measures the host, not the code — only gets written when it is asked for separately.
 
 ## Concurrent sessions and reconciliation
 

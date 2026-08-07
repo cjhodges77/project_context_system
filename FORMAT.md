@@ -59,6 +59,10 @@ Searchable historical state that is no longer part of the active retrieval path.
 
 The root `index.md` is the starting map and declares `pcs_version`. Any bundle directory may contain a lowercase `index.md`. Keep entries concise and use Obsidian wikilinks to concepts. A root index should route to active projects, feedback, learning domains, references, and archive guidance.
 
+### `log.md`
+
+A lowercase `log.md` is optional. Use it when distributing a bundle without Git history. Group entries under ISO `YYYY-MM-DD` headings, newest first. Git remains the primary history layer.
+
 ## Index size budgets
 
 Indexes are retrieval surfaces, not summaries of record. Harnesses load the always-read index with a hard size limit and **silently drop the overflow** — observed in practice at ~24 KB. Budget accordingly:
@@ -78,9 +82,35 @@ Do not hand-maintain a grand total in the hub; it drifts within days. Derive it 
 
 Before any whole-file index rewrite or split, preserve the outgoing file verbatim in `archive/` (`archive_<name>_longform_<date>.md`) in the same change. Move, don't delete: content arrives somewhere before it leaves the index. After migrating, verify every entry appears exactly once across the successor files and every leaf still resolves — the check is mechanical and cheap, and skipping it is how entries vanish without anyone deciding they should.
 
-### `log.md`
+## Index entry shape
 
-A lowercase `log.md` is optional. Use it when distributing a bundle without Git history. Group entries under ISO `YYYY-MM-DD` headings, newest first. Git remains the primary history layer.
+A size budget limits how large a duplicate may be, not whether it exists. Under pressure a character limit teaches *"write a shorter duplicate"* rather than *"write a pointer"*: an over-budget entry gets compressed into a terser restatement that still has to be re-edited on every change and still goes stale. Constrain shape, not only length.
+
+An index entry carries a **title, a hook, and at most the one fact that decides priority** — never findings, never numbers, never status. If you are tempted to add a number, the hook is too weak.
+
+The pressure to overfill an index is structural and worth naming: the always-loaded index is the only layer *guaranteed* to be read, so there is a standing incentive to put the payload where it will certainly be seen. A length limit does not touch that incentive. Content that genuinely must be read every session belongs in the operating contract, not smuggled into a routing line.
+
+Shape is also the cheaper thing to check. An index entry containing a number, a currency amount, a commit SHA, or a status word is almost certainly a summary — a much closer proxy for the rule than character count. Flag it and move the content to the leaf.
+
+## Derived values
+
+A value that is copied from somewhere else diverges from it. In one observed session, four of six documents that needed correcting had gone stale within a turn or two of being written, by the author who had just written them — a roadmap phase row, an index one-liner, a preamble byte count, and a status header. None was a judgement; every one was a hand-transcribed derived value. Judgements keep. Restatements rot.
+
+**Never write a computable number into prose — name the command that computes it.** An index preamble once recorded `19,951 bytes — 49 short of the gate`; a later compaction took the file to roughly 16 KB, and an agent then read the stale figure as a live hard blocker, planning around a constraint that had not existed for hours. The number was computable on demand the whole time. Write the command (`make check-memory-budget`) where the figure would have gone. The same applies to error counts, test counts, entry totals, and file sizes.
+
+**Status lives in exactly one place** — the owning project memo's `Status:` header. Roadmap rows, spec headers, and index lines link to it instead of restating it; status is not index content. Status changes on nearly every commit, so each additional copy is a scheduled divergence.
+
+Centralising status raises the stakes rather than removing them: once everything points at one source, that source going stale makes everything downstream wrong at once. Treat the owning header as a field with an owner — updated by the same change that changes the status, and re-read before it is quoted.
+
+**When a document states a fact about code, name the test that fails if it changes.** A named test turns a divergence into a failing build; an unanchored assertion is only as fresh as the last person who happened to reread it.
+
+## Original content and restatement
+
+A layer holding **original content** is stable. A layer holding a **restatement** needs mechanical enforcement. That distinction predicts which layers rot better than "keep indexes short" does, and it is how to decide where checks are worth building.
+
+The learnings layer is the stable case: a learning leaf and the incident memo that produced it are genuinely different artifacts — a reusable lesson versus what happened — so they diverge *correctly* rather than duplicating, and neither needs a checker. Index lines, roadmap rows, and spec headers are the unstable case: each restates something owned elsewhere, so each needs either a check or a link that removes the copy.
+
+The layers earn their keep, but their maintenance cost is arithmetic and should be priced rather than assumed away. In one observed session the same handful of facts reached **eight** prose surfaces — roadmap rows, index lines, memo bodies, learning leaves, learning index lines, plan correction blocks, spec headers, and commit messages — which is eight chances to diverge per change. **When a bundle adds a layer, state what makes that layer fail loudly when it diverges.** A layer with no such mechanism will rot quietly.
 
 ## Links and identity
 
@@ -113,4 +143,4 @@ A PCS bundle is structurally conformant when:
 
 ## Content quality rules
 
-Keep summaries short, evidence concrete, names stable, timestamps explicit, and canonical docs authoritative. Do not duplicate secrets, transient logs, large generated output, or source-code explanations that Graphify can retrieve.
+Keep summaries short, evidence concrete, names stable, timestamps explicit, and canonical docs authoritative. Do not duplicate secrets, transient logs, large generated output, or source-code explanations that Graphify can retrieve. Do not duplicate values another layer owns — link to status, and name the command that derives a count or a size.

@@ -46,6 +46,8 @@ project/
 4. **Canonical documentation** — specs, plans, runbooks, and reference docs remain authoritative for product behavior.
 5. **Code graph** — Graphify answers structural code questions without replacing project history.
 
+Each layer costs maintenance in proportion to how much it restates. Layers that hold original content stay true on their own; layers that hold a restatement of another layer need a link, a derivation, or a check to keep them honest. A bundle that adds a layer should say what makes that layer fail loudly when it diverges — see [Original content and restatement](FORMAT.md#original-content-and-restatement).
+
 ## Relationship to OKF
 
 PCS uses the same interoperable core ideas as Google's Open Knowledge Format: one Markdown file per concept, YAML frontmatter with a required `type`, a declared format version, reserved lowercase `index.md` and optional `log.md`, first-class references, UTF-8 content, and progressive disclosure. PCS uses `pcs_version` rather than `okf_version` and deliberately retains Obsidian wikilinks for internal relationships.
