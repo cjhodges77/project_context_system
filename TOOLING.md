@@ -36,4 +36,12 @@ Validation may check:
 - external claims without references or citations;
 - Graphify inputs that cross privacy exclusions.
 
+Shape checks catch the drift that size checks miss. A character budget bounds how large a duplicated summary may be but never whether it exists, so also flag:
+
+- index entries containing a number, a currency amount, a commit SHA, or a status word — each is a near-certain sign that a summary has been written where a pointer belongs;
+- computable figures in prose — byte counts, file sizes, test counts, error counts, entry totals — which should name the command that derives them instead;
+- status stated anywhere but the owning project memo's header.
+
+These are cheap regular expressions and much closer proxies for the real rules than character count. Prefer them to a longer size budget.
+
 Automation should report drift, not rewrite human-authored knowledge silently.

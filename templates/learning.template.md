@@ -36,7 +36,8 @@ timestamp: <YYYY-MM-DDTHH:MM:SSZ>
 
 ## Verification
 
-<How to confirm the remedy.>
+<How to confirm the remedy — name the test or command that fails if this regresses,
+so a divergence fails loudly instead of rotting quietly.>
 
 ## Related
 
