@@ -62,6 +62,7 @@ Canonical repository docs define product behavior. PCS explains active state, ra
 - A stop hook can remind agents to perform it but must not fabricate updates.
 - CI may validate frontmatter, `pcs_version`, Obsidian wikilinks, indexes, naming, citation coverage, and sensitive-path exclusions.
 - Review should reject stale active state, uncataloged learnings, unresolved internal links, and undocumented behavior changes.
+- A check earns its place only if it stays green on a healthy bundle and hangs off a command that already runs — see "Designing a check that survives" in [TOOLING.md](TOOLING.md).
 
 ## Trust boundary
 

@@ -38,10 +38,19 @@ Validation may check:
 
 Shape checks catch the drift that size checks miss. A character budget bounds how large a duplicated summary may be but never whether it exists, so also flag:
 
-- index entries containing a number, a currency amount, a commit SHA, or a status word — each is a near-certain sign that a summary has been written where a pointer belongs;
 - computable figures in prose — byte counts, file sizes, test counts, error counts, entry totals — which should name the command that derives them instead;
-- status stated anywhere but the owning project memo's header.
+- status stated anywhere but the owning project memo's header;
+- index entries carrying a value that another layer owns.
 
-These are cheap regular expressions and much closer proxies for the real rules than character count. Prefer them to a longer size budget.
+The third is the one to get right, because the obvious implementation of it is wrong. Keying on character class — *flag any entry containing a number, a currency amount, a commit SHA, or a status word* — is a one-line regular expression, and measured against a real bundle it fired on more than half the entries of an index that was working fine. Most of those numbers were fixed observations that no other document owns and that will never change. Key on ownership instead: flag a value some other layer maintains, leave a value that is simply a fact about the past.
+
+## Designing a check that survives
+
+A check is worth building only if it is still running in a month. Four properties decide that, and each has a documented failure behind it.
+
+- **Green on a healthy tree.** A check that is red when nothing is wrong gets bypassed, and a bypassed check is worse than none — it reads as coverage while enforcing nothing. Never gate on a condition a healthy bundle legitimately carries, such as a plan with open items or a workstream still in flight.
+- **Bind new conventions going forward.** Applying a new rule to an existing corpus reddens every document written before it, which is the fastest route to the bypass above. Scope the check by date and let the pre-convention corpus stay green; date-prefixed filenames make that cutoff mechanical rather than a judgement call.
+- **Hang it off a command people already run.** Make it a dependency of the lint or test entry point, not a standalone target. A target nobody invokes is a rule that is still enforced only by memory, with the added cost of looking enforced.
+- **State the limit inside the check.** Say what a green run does *not* prove — that it asserts form and never truth, or that it catches copy-paste but not reimplementation. A check whose limits are unwritten gets trusted for things it never verified.
 
 Automation should report drift, not rewrite human-authored knowledge silently.

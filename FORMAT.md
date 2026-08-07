@@ -90,7 +90,9 @@ An index entry carries a **title, a hook, and at most the one fact that decides 
 
 The pressure to overfill an index is structural and worth naming: the always-loaded index is the only layer *guaranteed* to be read, so there is a standing incentive to put the payload where it will certainly be seen. A length limit does not touch that incentive. Content that genuinely must be read every session belongs in the operating contract, not smuggled into a routing line.
 
-Shape is also the cheaper thing to check. An index entry containing a number, a currency amount, a commit SHA, or a status word is almost certainly a summary — a much closer proxy for the rule than character count. Flag it and move the content to the leaf.
+Shape is also the cheaper thing to check, but the signal is **ownership, not character class**. A number, a currency amount, a commit SHA, or a status word is a strong flag; the question to ask about each is *does another layer own this value?* A count of open defects is owned by the spec and changes every time one is fixed — flag it. A fixed historical observation, the kind that makes an entry findable at all ("a card said £300 about a pot holding £700"), is owned by nothing and will read the same in a year — leave it. That is rule five applied to the check itself: a restatement rots, original content does not, and only the first needs enforcing.
+
+The distinction is load-bearing rather than pedantic. Measured against a real bundle, the character-class version of this rule fires on well over half the entries of a *healthy* index, and a check that is red on a healthy tree gets bypassed.
 
 ## Derived values
 
