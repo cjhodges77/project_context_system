@@ -4,9 +4,7 @@ pcs_version: "0.1"
 
 # Project context
 
-One line per entry — title, hook, and at most the one fact that decides priority.
-No findings, no numbers, no status: status lives in the owning memo's header, and a
-computable figure is named by its command, not transcribed.
+One line per entry — title, hook, the one fact that decides priority. No findings, numbers, or status.
 
 ## Active projects
 
