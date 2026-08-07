@@ -17,6 +17,10 @@
 - [Reference concept](templates/reference.template.md)
 - [Domain sub-index](templates/domain_index.template.md)
 
+## Checks
+
+- [`scripts/pcs_lint.py`](scripts/pcs_lint.py) — size and shape checks for a bundle; vendor it and hang it off an existing lint target
+
 ## Bundle concept types
 
 | Type | Conventional path | Purpose |
