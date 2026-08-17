@@ -24,9 +24,9 @@
 
 ## Field reports
 
-Measurements from bundles running this format. Findings, not rulings — each says what was observed and whether it generalises.
+Measurements from bundles running this format. A report is evidence, not spec; each carries the disposition of its items, recorded when it merged.
 
-- [`budgets_rewritten`, 2026-08-17](feedback/2026-08-17-budgets-rewritten-field-report.md) — two `FORMAT.md` claims a real corpus falsified (`name:` is not a link identity; per-domain hub counts drift), the ratchet as a second way to bind a convention forward, and four concepts the format has no home for
+- [`budgets_rewritten`, 2026-08-17](field-reports/2026-08-17-budgets-rewritten-field-report.md) — ten days against a real corpus: the two `FORMAT.md` claims it falsified, what the checks found once they existed, and why one proposed check was declined
 
 ## Bundle concept types
 

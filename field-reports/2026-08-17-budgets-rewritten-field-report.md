@@ -1,8 +1,41 @@
 # Field report — `budgets_rewritten`, 2026-08-07 → 2026-08-17
 
 **Source:** the bundle that PCS was extracted from, run for ten days after the last upstream change.
-**Status:** feedback for consideration. Nothing here is a request to change PCS by default; each item
-says what was measured, what was built, and whether it generalises.
+**Status:** ruled on — see the disposition below. The body is preserved as received; nothing in it was
+rewritten to match what was adopted. Each item says what was measured, what was built, and whether it
+generalises.
+
+## Disposition, recorded on merge
+
+This document is the recommendation. The table is the ruling — the distinction §8.1 argues for,
+applied to the report that argues for it. Everything below the table is the report as filed.
+
+| § | Disposition | Where it landed |
+| --- | --- | --- |
+| 1.1 `name:` is not a link identity | Adopted, extended | [Links and identity](../FORMAT.md#links-and-identity) and [Conformance](../FORMAT.md#conformance) rule 4, which is now stated as checkable. The proposed *`name:` must appear in its own `aliases:`* check was **not** built: §1.1's own second-order finding shows it is vacuous for a note carrying no `name:`. `pcs_lint.py` resolves links directly, which subsumes the whole class, and names the `name:` repair in the finding when a dead target matches one. Templates now mirror `name` into `aliases`. |
+| — | **Found while checking 1.1** | Every wikilink in every PCS template was wrapped in backticks, where Obsidian renders no link at all. Fixing `name:` alone would have left the graph empty. Templates fixed; `pcs_lint.py` checks it. This is the same masking effect §1.1 names, one layer further up. |
+| 1.2 Per-domain counts drift | Adopted | [Domain sub-indexes](../FORMAT.md#domain-sub-indexes). Carve-out dropped, coverage invariant in its place, and checked — though as "at least one index" generally, with exactly-one applied only among sibling domain indexes, since a memo routed from both a parent and a domain index is a healthy shape. |
+| 2 Some properties are not review-checkable | Adopted | [Reference implementation](../TOOLING.md#reference-implementation); the "enforced by review" sentence is gone, and [Enforcement](../METHODOLOGY.md#enforcement) now states that review must not be assigned it. |
+| 3 The ratchet | Adopted | [Two ways to bind forward](../TOOLING.md#two-ways-to-bind-forward), with the both-directions rule and the goal-dependent exception. A `--ratchet` mode is not built as merged. |
+| 4 The operating contract has no budget | Adopted | [The always-read file above the indexes](../FORMAT.md#the-always-read-file-above-the-indexes), including the do-not-compact warning and the guaranteed-read/conditionally-read distinction. |
+| 5 Deferred bookkeeping | Adopted | [Restructuring an index](../FORMAT.md#restructuring-an-index). |
+| 6 Reachability of the check itself | Adopted | [Vendoring the linter](../ADOPTION.md#vendoring-the-linter), and the third property in [Designing a check that survives](../TOOLING.md#designing-a-check-that-survives). |
+| 7 `--selftest` is a floor | Adapted | "Prove the red path, in both directions" is now a fifth property, and "state the limit" is strengthened with the wrong-key example. A per-check adversarial suite is **not** required of a vendored script — the weight is wrong for the audience. `--selftest` mutation-proves its own corpus checks instead, and caught a coverage bug while being written. |
+| 8.1 Unratified research | Adopted, tier 3 | [Optional types for larger bundles](../FORMAT.md#optional-types-for-larger-bundles), including the never-written-to-a-file variant. |
+| 8.2 Decisions register | Adopted, tier 3 | Same section, including the both-arms reporting rule. |
+| 8.3 `## Verification owed` | Adopted, tier 3 | Same section, including the owner-must-be-able-to-run refinement. |
+| 8.4 Unfalsifiable by progress | Adopted | [Index entry shape](../FORMAT.md#index-entry-shape), stated together with *name the command, not the number* as one principle, as §8.4 asks. |
+| 9 The declined prose-number checker | Adopted as a decision | [Considered and declined](../TOOLING.md#considered-and-declined) is now a third state in the automation list, carrying the reasoning and the words-not-digits detail. |
+
+**Tier 3** above means the concept is documented but not recommended for every bundle. The report's
+items divided cleanly by scale, which prompted [Tiers at a glance](../ADOPTION.md#tiers-at-a-glance):
+registers, research and ratchets earn their place once absence starts to mislead, and cost more than
+they return before that.
+
+**Changed on merge.** This report was filed under `feedback/`, which collides with the format's own
+`feedback/` concept type for durable behavioural rules; it lives in `field-reports/` instead. Its link
+to `ADOPTION.md#8-add-enforcement` broke when that guide was restructured into tiers, and was
+repointed — caught by `check_doc_links.py`, which exists because of this report's §2 argument.
 
 The previous round of this feedback landed as issue #1 and became the index-shape rules, the
 ownership-not-character-class fix, and `pcs_lint.py`. This round covers what happened next: seven
@@ -203,7 +236,7 @@ it.
 **A guard outside the gate's reach is not a weaker guard; it is an absent one.** Wiring it in cost
 one narrow target, and it caught the very next in-place edit **in the same session**.
 
-**Suggested change.** In [ADOPTION step 8](../ADOPTION.md#8-add-enforcement), after wiring: confirm
+**Suggested change.** In [ADOPTION's enforcement step](../ADOPTION.md#vendoring-the-linter), after wiring: confirm
 by mutation that the gate actually goes red, and confirm that the *directory the check lives in* is
 inside the scope the invoked command traverses. Existing and invoked are different properties, and a
 check can satisfy the first for months while failing the second.
