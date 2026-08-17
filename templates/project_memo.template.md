@@ -1,6 +1,8 @@
 ---
 type: project
 name: <stable-kebab-case-identity>
+aliases:
+  - <stable-kebab-case-identity>
 title: <Human-readable title>
 description: <One sentence that identifies this workstream.>
 resource: docs/specs/<slug>.md
@@ -39,9 +41,9 @@ metadata:
 
 ## Related
 
-- Learning: `[[<learning-slug>]]`
-- Reference: `[[<reference-slug>]]`
+- Learning: [[<learning-slug>]]
+- Reference: [[<reference-slug>]]
 
 ## Citations
 
-- `[[<reference-slug>]]`
+- [[<reference-slug>]]

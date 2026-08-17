@@ -9,6 +9,7 @@ The Project Context System (PCS) is a repository-native knowledge format for pre
 - Turn task-specific discoveries into reusable lessons.
 - Keep knowledge portable, reviewable, and version-controlled.
 - Separate project history from code-structure analysis.
+- Cost almost nothing on a small project and stay navigable on a large one.
 
 ## Repository layout
 
@@ -37,6 +38,8 @@ project/
 ```
 
 `.claude/memory/` is the self-contained PCS bundle and unit of distribution. Repository docs and source remain outside the bundle and are identified through frontmatter resources. Directories provide stable categories, lowercase `index.md` files provide progressive disclosure, Obsidian wikilinks provide relationships, and Git provides chronology, attribution, review, and rollback.
+
+**That is a mature bundle, not a starting point.** A new one is two files — the operating contract and a single `index.md` — and grows a directory only when a symptom earns it. Empty indexes in unused directories cost real context and teach an agent the bundle is bigger than it is. See [Tiers at a glance](ADOPTION.md#tiers-at-a-glance) for what to add and what promotes you to it.
 
 ## Knowledge layers
 
