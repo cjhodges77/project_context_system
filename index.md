@@ -21,6 +21,12 @@
 
 - [`scripts/pcs_lint.py`](scripts/pcs_lint.py) — size and shape checks for a bundle; vendor it and hang it off an existing lint target
 
+## Field reports
+
+Measurements from bundles running this format. Findings, not rulings — each says what was observed and whether it generalises.
+
+- [`budgets_rewritten`, 2026-08-17](feedback/2026-08-17-budgets-rewritten-field-report.md) — two `FORMAT.md` claims a real corpus falsified (`name:` is not a link identity; per-domain hub counts drift), the ratchet as a second way to bind a convention forward, and four concepts the format has no home for
+
 ## Bundle concept types
 
 | Type | Conventional path | Purpose |
