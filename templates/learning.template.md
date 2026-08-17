@@ -1,6 +1,8 @@
 ---
 type: learning
 name: <stable-kebab-case-identity>
+aliases:
+  - <stable-kebab-case-identity>
 title: <Brief descriptive title>
 description: <One-sentence reusable lesson.>
 resource: <key repository path or external resource>
@@ -41,9 +43,9 @@ so a divergence fails loudly instead of rotting quietly.>
 
 ## Related
 
-- Project memo: `[[<project-slug>]]`
-- Learning: `[[<related-learning-slug>]]`
+- Project memo: [[<project-slug>]]
+- Learning: [[<related-learning-slug>]]
 
 ## Citations
 
-- `[[<reference-slug>]]`
+- [[<reference-slug>]]

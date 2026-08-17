@@ -8,20 +8,20 @@ One line per entry — title, hook, the one fact that decides priority. No findi
 
 ## Active projects
 
-- `[[project-example]]` — <one-line scope — what this workstream is for, and the hook that says when to open it>
+- [[project-example]] — <one-line scope — what this workstream is for, and the hook that says when to open it>
 
 ## Feedback
 
-- `[[feedback-example]]` — <one-line rule>
+- [[feedback-example]] — <one-line rule>
 
 ## Learnings
 
-- `[[learnings/index|Learning catalog]]`
+- [[learnings/index|Learning catalog]]
 
 ## References
 
-- `[[references/index|Reference catalog]]`
+- [[references/index|Reference catalog]]
 
 ## Archive
 
-- `[[archive/index|Archived context]]`
+- [[archive/index|Archived context]]

@@ -1,6 +1,8 @@
 ---
 type: feedback
 name: <stable-kebab-case-identity>
+aliases:
+  - <stable-kebab-case-identity>
 title: <Feedback title>
 description: <One-sentence rule summary.>
 resource: <originating issue, review, or document>
@@ -34,4 +36,4 @@ metadata:
 
 ## Related
 
-- Project memo: `[[<project-slug>]]`
+- Project memo: [[<project-slug>]]

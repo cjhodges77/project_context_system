@@ -61,7 +61,8 @@ Canonical repository docs define product behavior. PCS explains active state, ra
 - An operating contract can require the seven-point audit before completion.
 - A stop hook can remind agents to perform it but must not fabricate updates.
 - CI may validate frontmatter, `pcs_version`, Obsidian wikilinks, indexes, naming, citation coverage, and sensitive-path exclusions.
-- Review should reject stale active state, uncataloged learnings, unresolved internal links, and undocumented behavior changes.
+- Review should reject stale active state, uncataloged learnings, and undocumented behavior changes.
+- Review should **not** be assigned unresolved internal links or index coverage. A dead wikilink and a live one are the same characters in the diff, so the property exists only in a resolver nobody opens while reviewing; assigning it to review describes a procedure that cannot execute. Those belong to a check — see [Reference implementation](TOOLING.md#reference-implementation).
 - A check earns its place only if it stays green on a healthy bundle and hangs off a command that already runs — see "Designing a check that survives" in [TOOLING.md](TOOLING.md).
 
 ## Trust boundary

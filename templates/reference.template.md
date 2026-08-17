@@ -1,6 +1,8 @@
 ---
 type: reference
 name: <stable-kebab-case-identity>
+aliases:
+  - <stable-kebab-case-identity>
 title: <Source title>
 description: <Why this source matters to the project.>
 resource: https://example.com/canonical-source
@@ -25,5 +27,5 @@ timestamp: <YYYY-MM-DDTHH:MM:SSZ>
 
 ## Related
 
-- Project memo: `[[<project-slug>]]`
-- Learning: `[[<learning-slug>]]`
+- Project memo: [[<project-slug>]]
+- Learning: [[<learning-slug>]]

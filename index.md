@@ -19,7 +19,7 @@
 
 ## Checks
 
-- [`scripts/pcs_lint.py`](scripts/pcs_lint.py) — size and shape checks for a bundle; vendor it and hang it off an existing lint target
+- [`scripts/pcs_lint.py`](scripts/pcs_lint.py) — size, shape, link-resolution and index-coverage checks for a bundle; vendor it and hang it off an existing lint target
 
 ## Bundle concept types
 
