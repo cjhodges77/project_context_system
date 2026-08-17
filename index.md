@@ -20,6 +20,7 @@
 ## Checks
 
 - [`scripts/pcs_lint.py`](scripts/pcs_lint.py) — size, shape, link-resolution and index-coverage checks for a bundle; vendor it and hang it off an existing lint target
+- [`scripts/check_doc_links.py`](scripts/check_doc_links.py) — dead file and heading-anchor links between a repository's own documents, for the guides that sit outside a bundle
 
 ## Bundle concept types
 

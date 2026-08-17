@@ -64,6 +64,12 @@ Three scoping decisions in the link checks, each of which prevents a false posit
 
 One further trap, found by the field report that prompted these checks: the obvious rule — *a `name:` must appear in its own `aliases:`* — is **vacuous for a note carrying no `name:` at all**, and three unreachable leaves shipped with that check green. Checking resolution directly avoids the whole class: a link either lands or it does not, whatever identity it was spelled with. When it does not land and the target happens to match some file's `name:`, the finding says so and names the repair, because that is the case a reader is most likely to dismiss as a typo.
 
+### Documents outside the bundle
+
+`pcs_lint.py` checks a bundle. The guides, specs, and plans around it link to each other by file and by heading anchor, and those links fail the same way and for the same reason — a dead anchor and a live one are identical in the diff. [`scripts/check_doc_links.py`](scripts/check_doc_links.py) resolves them.
+
+It exists because the failure happened here. Restructuring `ADOPTION.md` around tiers deleted a heading that a document elsewhere in the tree pointed at, and the review that made the change did not notice. **Renaming a heading is an interface change**: the inbound pointers are owed in the same commit as the rename, for the reason given in [Restructuring an index](FORMAT.md#restructuring-an-index) — defer them and the gate fires later, on someone who did not make the decision.
+
 ## Designing a check that survives
 
 A check is worth building only if it is still running in a month. Four properties decide that, and each has a documented failure behind it.

@@ -15,3 +15,4 @@ lint:
 	python3 scripts/pcs_lint.py --selftest
 	python3 scripts/pcs_lint.py templates --no-resolve --no-coverage \
 	    --index index.template.md --index domain_index.template.md
+	python3 scripts/check_doc_links.py .
