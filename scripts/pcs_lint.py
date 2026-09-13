@@ -534,8 +534,9 @@ def check_corpus(docs: list[Doc], args: argparse.Namespace) -> list[Finding]:
             findings.append(Finding(
                 "admit", doc.rel, 0,
                 "routed from an index with no reference from outside one — a document "
-                "earns a loaded index entry on a second, independent reference; until "
-                "then it is reachable from the leaf that needed it",
+                "earns a place in an always-loaded index on a second, independent "
+                "reference, because one reference cannot tell a working-set member "
+                "from a bulk load",
                 f"admit:{doc.key}",
                     quote=False,
             ))
@@ -681,7 +682,11 @@ def check_bundle(root: Path, args: argparse.Namespace) -> tuple[list[Finding], l
             # lists the vocabulary — a template offering every value in turn is
             # not a claim about anything.
             header = STATUS_HEADER.search(text)
-            value = re.sub(r"[*_`]", "", text[header.end():].splitlines()[0]) if header else ""
+            # A header with nothing after it is the last line of the file, so
+            # there is no line to read. A linter that raises on a malformed
+            # document is a linter that gets taken out of the lint target.
+            tail = text[header.end():].splitlines() if header else []
+            value = re.sub(r"[*_`]", "", tail[0]) if tail else ""
             if value.strip().rstrip(".").lower() == "superseded" and not superseded_target(doc.fm):
                 findings.append(
                     Finding(
@@ -924,6 +929,12 @@ def bundle_selftest() -> list[str]:
          project__project_example_md=HEALTHY_BUNDLE["project/project_example.md"].replace(
              "name: example-workstream",
              "name: example-workstream\nsuperseded_by: project_successor"))
+
+    # A status header with no value at all, as the file's final line: nothing
+    # to rule on, and nothing to raise on either.
+    case("status header with no value", None,
+         project__project_example_md=HEALTHY_BUNDLE["project/project_example.md"].replace(
+             "**Status:** active\n\nBackground.\n", "Status:"))
 
     case("status says superseded and names no successor", "life",
          project__project_example_md=HEALTHY_BUNDLE["project/project_example.md"].replace(

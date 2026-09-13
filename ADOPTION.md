@@ -105,7 +105,7 @@ jobs:
       - run: make lint
 ```
 
-This repository runs that file against itself. Three things to settle the day you add yours, each of which has already cost somebody:
+This repository runs [its own copy](.github/workflows/lint.yml) of that against itself. Three things to settle the day you add yours, each of which has already cost somebody:
 
 - **Whether it can refuse a merge.** A workflow *reports*. Blocking needs the check marked required in branch protection, which is a paid feature on some plans. A reporting check is worth having — calling it enforcement when it cannot refuse anything is the part to avoid.
 - **Whether any of your checks need history.** A gate that resolves a diff against a base ref needs the full history (`fetch-depth: 0`). The default shallow checkout of a pull-request merge ref resolves that base to `HEAD` itself, so the gate fails on every run, and a gate red on a healthy tree is the one that gets switched off.
