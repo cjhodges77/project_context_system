@@ -59,11 +59,12 @@ Canonical repository docs define product behavior. PCS explains active state, ra
 ## Enforcement
 
 - An operating contract can require the seven-point audit before completion.
-- A stop hook can remind agents to perform it but must not fabricate updates.
+- A stop hook can remind agents to perform it but must not fabricate updates. **A reminder hook is only as good as the list that arms it, so that list needs a test of its own**: one hook's watched-path list drifted, and a deployment-file change behind a total outage never armed the audit.
 - CI may validate frontmatter, `pcs_version`, Obsidian wikilinks, indexes, naming, citation coverage, and sensitive-path exclusions.
+- A guard that **fails closed** must be exercised on every platform that loads it before it is trusted there. One cross-tree write guard met a platform whose `realpath` lacked the GNU extension it assumed and refused *every* write in the repository, including the edits needed to repair it — and four of its internal fallbacks turned out to be fail-opens wearing a fail-closed's clothes.
 - Review should reject stale active state, uncataloged learnings, and undocumented behavior changes.
 - Review should **not** be assigned unresolved internal links or index coverage. A dead wikilink and a live one are the same characters in the diff, so the property exists only in a resolver nobody opens while reviewing; assigning it to review describes a procedure that cannot execute. Those belong to a check — see [Reference implementation](TOOLING.md#reference-implementation).
-- A check earns its place only if it stays green on a healthy bundle and hangs off a command that already runs — see "Designing a check that survives" in [TOOLING.md](TOOLING.md).
+- A check earns its place only if it stays green on a healthy bundle, hangs off a command that already runs, and has something other than a person's memory running that command — see "Designing a check that survives" in [TOOLING.md](TOOLING.md).
 
 ## Trust boundary
 

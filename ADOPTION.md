@@ -13,7 +13,7 @@ So start at tier 0 and let a **symptom** promote you. Not a schedule, not the si
 | 0 | Operating contract + one `index.md` | Minutes | An entry needs evidence that will not fit on its line |
 | 1 | Concept files in the directories you actually use | A file per lesson | Scrolling the index to find something you know you wrote |
 | 2 | Per-directory indexes, domain split, `archive/`, the linter | A gate in CI | A second author, or an entry going stale unnoticed |
-| 3 | Decisions register, `research/`, ratchets, Graphify, hooks | Ongoing enforcement | Authors who cannot run what they document; absences that mislead |
+| 3 | Decisions register, `research/`, ratchets, admission control, Graphify, hooks | Ongoing enforcement | Authors who cannot run what they document; absences that mislead |
 
 ---
 
@@ -87,6 +87,30 @@ Two things to confirm once, by hand, the day you wire it in:
 - **Mutation-prove it.** Break something on purpose, watch the gate go red naming the file, fix it, watch it go green. A gate whose red path you have never seen is a gate you are trusting on the strength of its docstring.
 - **Confirm the check is in reach.** *Wired in* and *reachable* are different properties: verify that the directory the check lives in is inside the scope the invoked command actually traverses. A guard outside the gate's reach is not a weaker guard, it is an absent one.
 
+### Making it run without you
+
+Wiring the check into `lint` is the first half. The second is getting something to run `lint` **without anyone deciding to** — a pre-commit hook, a CI trigger, a scheduled job. Until then the rule is still enforced by memory, with the added cost of looking enforced: one bundle merged 500+ pull requests in a month while its 33 checks fired only when a person typed the command.
+
+The smallest honest version, for a project whose lint target already exists:
+
+```yaml
+# .github/workflows/lint.yml
+name: lint
+on: [push, pull_request]
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: make lint
+```
+
+This repository runs that file against itself. Three things to settle the day you add yours, each of which has already cost somebody:
+
+- **Whether it can refuse a merge.** A workflow *reports*. Blocking needs the check marked required in branch protection, which is a paid feature on some plans. A reporting check is worth having — calling it enforcement when it cannot refuse anything is the part to avoid.
+- **Whether any of your checks need history.** A gate that resolves a diff against a base ref needs the full history (`fetch-depth: 0`). The default shallow checkout of a pull-request merge ref resolves that base to `HEAD` itself, so the gate fails on every run, and a gate red on a healthy tree is the one that gets switched off.
+- **Whether the setup instructions are real.** A clean checkout is the first thing that has ever run them. A hard-coded platform-specific path in an install recipe passes forever on the machine that wrote it.
+
 **Promoted when** a second session or second person edits the bundle in the same week, or an entry goes stale without anyone noticing, or you catch yourself depending on a property review cannot see.
 
 ## Tier 3 — registers, research, and ratchets
@@ -97,13 +121,14 @@ Everything here exists because a bundle got big enough that *absence* became mis
 - **`research/`** for investigations nobody has ruled on, kept out of `docs/specs/` and `docs/plans/` so it borrows no authority.
 - **`## Verification owed`** wherever authors cannot run the code they document, with an owner who can actually run the command named.
 - **A ratchet on the operating contract**, since it is the highest read-multiplier file and the one with no natural budget — see [The always-read file above the indexes](FORMAT.md#the-always-read-file-above-the-indexes).
-- **Graphify** for structural code questions, behind a `.graphifyignore` privacy fence excluding secrets, databases, exports, backups, `.claude/`, dependencies, and build artifacts. Keep extraction and LLM-based relabeling as separate commands:
+- **Admission control on a loaded index** (`pcs_lint.py --admission`), once the index grows faster than anyone prunes it: a leaf earns its entry on a second reference from outside an index — see [Reference implementation](TOOLING.md#reference-implementation).
+- **Graphify** for structural code questions, behind a `.graphifyignore` privacy fence excluding secrets, databases, exports, backups, dependencies, and build artifacts. Whether your own `.claude/memory/` belongs in the graph is a decision rather than a default, and both ways of getting the fence wrong are silent — see [Whether to graph your own memory](TOOLING.md#whether-to-graph-your-own-memory). Keep extraction and LLM-based relabeling as separate commands:
 
   ```bash
   PATH="$HOME/.local/bin:$PATH" graphify update .
   ```
 
-- **External views** — an idempotent `scripts/setup_vault_links.sh` linking memory, agents, and docs into an Obsidian vault and into the agent harness. It must refuse to replace real directories or unrelated symlinks. See [Tooling](TOOLING.md).
+- **External views** — an idempotent `scripts/setup_vault_links.sh` linking memory, agents, and docs into an Obsidian vault and into the agent harness. It must refuse to replace real directories or unrelated symlinks, and it must name the vault from the **project's identity, never a path basename**: in a worktree, a container mount or a CI checkout the basename is the instance, and one bundle collected 3,699 note instances for 941 notes that way. Where something already provisions the environment, give it the linking instead of writing this script. See [Obsidian](TOOLING.md#obsidian).
 - **A stop hook** prompting for the [seven-point audit](METHODOLOGY.md#seven-point-delivery-audit), which may remind but must never fabricate updates.
 
 CI can additionally check frontmatter validity, `pcs_version`, citation coverage, graph freshness, and privacy exclusions — none of which the linter implements, and all of which review genuinely can catch.
@@ -123,5 +148,7 @@ CI can additionally check frontmatter validity, `pcs_version`, citation coverage
 ## Maintaining it
 
 At delivery boundaries: archive shipped or stale memos, transfer durable outcomes to canonical docs, rebuild stale graphs, and supersede contradicted knowledge with dated evidence rather than silently deleting history. Add optional `log.md` files only when exporting a bundle without Git history.
+
+Two periodic reviews earn their place once there is enough history for either to say anything. **Measure what is actually read** rather than inferring it from the layer — see [What the budgets are sized against](FORMAT.md#what-the-budgets-are-sized-against). And **review each check against the liveness of what it defends**, which nominates a check for review rather than for removal — see [Admitting and retiring a check](TOOLING.md#admitting-and-retiring-a-check).
 
 Demotion is legitimate and rarely considered. A domain index that has not been opened in months is a candidate for folding back into its hub; a directory whose last two leaves were archived can go. The tiers describe pressure, not achievement, and pressure comes off as well as on.

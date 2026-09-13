@@ -67,6 +67,8 @@ A register of rulings with `type: decision`, plus an index gated against the reg
 
 If you gate it, report **both arms before returning** — a ruling with no row, and a row with no ruling. A drifted title trips both at once, so reporting only the first hides half the diagnosis.
 
+Gate the **key column** too, and expect it to need its own check. A bijection gate compares titles by containment, which it must, since an index truncates and a `WITHDRAWN` prefix has to keep passing — and containment cannot see a row filed under the wrong key, on a file whose entire purpose is lookup by key. The general form is worth more than the special case: **where a check's stated limit describes a property the artifact's purpose depends on, that limit is a defect to schedule, not a caveat to ship.**
+
 #### `research/`
 
 Investigations nobody has ruled on, with `type: research`. Specs and plans are behaviour and scope truth; an unratified investigation is neither, and filing it beside them lends it an authority nobody granted. The failure has a name — **a recommendation is not a ruling** — and on one bundle it was caught four times before the location was separated out. Such a document should state its own status in its header: cite it for reasoning, never as the citation for a decided fact. A worse variant belongs in the same breath: one such document was produced, returned in conversation, and never written to a file at all, while a later ruling cited its conclusions with no path. That is worse than a dangling pointer, because there is nothing to check.
@@ -103,6 +105,22 @@ Those budgets cover indexes. The operating contract is read **every turn and on 
 Give it a **ratchet rather than a budget** (see [Designing a check that survives](TOOLING.md#designing-a-check-that-survives)). A budget here would be a number somebody invented; a ratchet is today's measured size, failing on change in either direction. The gate cannot tell a good addition from a bad one and should not try — raising the baseline in the same commit is the *expected* move for a rule an incident just earned. The point is only that a byte change becomes something someone stated.
 
 **Do not compact it to hit the number.** The obvious fix — move each long block's rationale into the leaf it already links to — was scoped on a real bundle and abandoned when its founding premise was measured: the contract's overlap with every learnings, feedback and docs file across a 2.2M-character corpus was **4% verbatim**. It paraphrases; it does not copy, and for at least one detail it was the only copy. The structural reason outlives that one plan: **moving text out of an always-loaded file converts guaranteed-read content into conditionally-read content.** That is a real safety cost paid for a real context saving, worth paying only where the moved text is rationale — never where a rule stops working once its reason is one click away. Splitting an oversized domain index is the same operation one layer down and is straightforwardly good there. Treating the two as one problem is the mistake.
+
+### What the budgets are sized against
+
+Every budget above is sized by an **assumption** about how often a layer is read. The assumption is measurable, and cheaply: a harness that keeps session records already holds the answer, so a reader over those records reports how often each document was actually opened and by what. No hook, no instrumentation, no change to how anyone works.
+
+Three properties decide whether such a measurement is worth anything, each learned by getting it wrong:
+
+- **Count the subagent sessions.** An instrument that reads only the orchestrator's records is not a small underestimate — it misses the majority. On one corpus subagents out-read the orchestrator 9,216 to 6,737, and the first version of the instrument globbed one directory level, missed roughly 80% of the corpus, and reported 111 documents as never read that subagents were opening routinely.
+- **Report an auto-loaded file as *not measurable*, never as unread.** Nothing can observe a read of a file the harness injects, so the always-loaded index and the operating contract report zero by construction. A report that does not say so invites exactly the wrong conclusion about the two most important files in the bundle.
+- **Measure before building the instrument.** The obvious implementation on one harness was a hook logging `Read` calls. In the session that proposed it, 391 of ~418 tool calls were `Bash` and `Read` was used zero times: the hook would have logged nothing and looked healthy doing it.
+
+The first such measurement, against 957 tracked documents, found **446 that had never been read**, with the top 10 taking 44% of all reads. Treat that as a statement about retrieval paths rather than a deletion list — it describes one machine's records over one window, and a document nothing has needed yet is not a document nothing will need.
+
+The payoff is a rule that replaces a guess. **A layer's budget policy is a default, and a measurement overrides it for one document.** Where a document is read at a rate its layer does not predict, budget that document and say why at the site: one bundle's system document is nominally read *only when you are acting on it* and ranks 14th of 579 by recorded reads, which is the entire reason it carries a ratchet. Applied loosely this reintroduces budgets across every layer, which this format deliberately does not want — so it is a permission a measurement buys, not a rule.
+
+The structural finding underneath is worth carrying even if you never build the instrument: **a bundle can be over-enforced and under-read at the same time, and only the second costs something on every use.**
 
 ## Domain sub-indexes
 
@@ -148,6 +166,8 @@ A value that is copied from somewhere else diverges from it. In one observed ses
 
 Centralising status raises the stakes rather than removing them: once everything points at one source, that source going stale makes everything downstream wrong at once. Treat the owning header as a field with an owner — updated by the same change that changes the status, and re-read before it is quoted.
 
+**A table that enumerates what your automation does is a derived value too.** The list of checks in a system document, a README's table of gates, a test plan's inventory — each is a hand-stored derivation of a build file, and each drifts exactly as a count does. One bundle's operating contract said "fourteen gates" while the real figure had passed 23, with the same stale number copied into a second document, both authoritative-looking. Name the command that prints the list, or check the table against the thing it describes. This repository's own [automation list](TOOLING.md#optional-automation) is hand-maintained and carries the same exposure.
+
 **When a document states a fact about code, name the test that fails if it changes.** A named test turns a divergence into a failing build; an unanchored assertion is only as fresh as the last person who happened to reread it.
 
 ## Original content and restatement
@@ -157,6 +177,8 @@ A layer holding **original content** is stable. A layer holding a **restatement*
 The learnings layer is the stable case: a learning leaf and the incident memo that produced it are genuinely different artifacts — a reusable lesson versus what happened — so they diverge *correctly* rather than duplicating, and neither needs a checker. Index lines, roadmap rows, and spec headers are the unstable case: each restates something owned elsewhere, so each needs either a check or a link that removes the copy.
 
 The layers earn their keep, but their maintenance cost is arithmetic and should be priced rather than assumed away. In one observed session the same handful of facts reached **eight** prose surfaces — roadmap rows, index lines, memo bodies, learning leaves, learning index lines, plan correction blocks, spec headers, and commit messages — which is eight chances to diverge per change. **When a bundle adds a layer, state what makes that layer fail loudly when it diverges.** A layer with no such mechanism will rot quietly.
+
+**The restated thing may be an interface rather than a document.** A route list, a test inventory, a checklist tally, a table of supported flags — each restates something a machine can enumerate, and the same three options apply: link to it, derive it from it, or check it against it. The commit rate is the tell. One API document took 61 commits in 30 days, and a restatement moving at that rate is not maintained by discipline.
 
 ## Links and identity
 
@@ -182,6 +204,16 @@ Externally sourced claims should end with a `## Citations` section. Cite the cor
 6. Archive completed or stale project state while retaining links.
 7. Supersede contradicted knowledge with dated evidence rather than rewriting history invisibly.
 
+### Status vocabulary
+
+Status lives in exactly one place — the owning memo's `**Status:**` header — and a small closed vocabulary keeps that place readable: **`active`**, **`blocked`**, **`shipped`**, **`superseded`**, **`withdrawn`**.
+
+Two of them are worth arguing for, because a bundle missing them produces two different lies. **`shipped`** means *the work this document specified is done; it is a record now, not an instruction.* Without it, a finished spec gets marked superseded — false, nothing replaced it — or left active, also false, because it still reads as an instruction. On one bundle finished work was five to ten times more common than partial supersession. And **`archived` is not a status**, however natural it looks: it names a *location*, which the filing flow already owns, and a field carrying both state and location is a field with two meanings.
+
+**`superseded` makes a promise about another file, so it must name it** — `superseded_by:` in frontmatter, pointing at the replacement. Supersession that names no successor is deletion with extra steps.
+
+What a check can do with this, and what it cannot, belongs at the site; it is exactly the class of limit [Designing a check that survives](TOOLING.md#designing-a-check-that-survives) says to write down. It can verify that a successor exists, that the pointer reaches **exactly one** note, and that the chain is **acyclic** — chains do close into loops, and each document in a loop looks individually correct while none of them is current. It cannot tell you that a status is **true**: `active` on an abandoned document passes every gate here.
+
 ## Conformance
 
 A PCS bundle is structurally conformant when:
@@ -189,10 +221,18 @@ A PCS bundle is structurally conformant when:
 1. `.claude/memory/index.md` contains a non-empty `pcs_version`.
 2. Every Markdown file except `index.md` and `log.md` begins with parseable YAML frontmatter containing a non-empty `type`.
 3. Reserved `index.md` and `log.md` files follow the structures above.
-4. Internal relationships use Obsidian wikilinks that resolve — by filename or by an `aliases:` entry — and are written outside code spans. Resolution is a property of a renderer, not of the text, so this rule is checkable but not reviewable; `pcs_lint.py` implements it.
+4. Internal relationships use Obsidian wikilinks that resolve — by filename or by an `aliases:` entry — to **exactly one** note, and are written outside code spans. Resolution is a property of a renderer, not of the text, so this rule is checkable but not reviewable; `pcs_lint.py` implements it.
 5. Consumers preserve unknown frontmatter fields and tolerate unknown `type` values.
 6. Every document is UTF-8.
+
+Rule 2 carries a trap worth naming, because it defeats rule 4 from underneath: *parseable* is a property of a **specific parser**. A duplicate key is a hard error to Obsidian and a silent last-value-wins to PyYAML, and the permissive one is the parser bundles lint with. A note whose frontmatter fails to parse in the consumer loses its `aliases:` — and with them its link identity — while looking perfectly correct in the file and in review. Parse the way the consumer parses.
 
 ## Content quality rules
 
 Keep summaries short, evidence concrete, names stable, timestamps explicit, and canonical docs authoritative. Do not duplicate secrets, transient logs, large generated output, or source-code explanations that Graphify can retrieve. Do not duplicate values another layer owns — link to status, and name the command that derives a count or a size.
+
+### Emphasis markers
+
+If a bundle uses glyphs for emphasis — a prohibition, a hazard, a closed item — the set should be **closed, disjoint, and defined in one place**, and doubling one is a defect rather than more emphasis. The finding that produced this rule was not inconsistency. On one bundle nothing had ever defined what the glyphs meant, across an operating contract, a system document, an index and a register that all used them, so there was no convention to be inconsistent with: that absence was the defect.
+
+Do not inherit anyone's glyph vocabulary, including that bundle's. Inherit the test that makes a marker mean something, applied before typing it: for a hazard, *can you name the incident or the measurement?* — a hazard nobody has hit is a guess, and a guess is prose. For a prohibition, *is there something here a reader could disobey?* In a corpus read under time pressure by something that pattern-matches, emphasis inflation is a real cost, and it is invisible in review.

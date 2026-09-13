@@ -19,14 +19,17 @@
 
 ## Checks
 
-- [`scripts/pcs_lint.py`](scripts/pcs_lint.py) — size, shape, link-resolution and index-coverage checks for a bundle; vendor it and hang it off an existing lint target
+- [`scripts/pcs_lint.py`](scripts/pcs_lint.py) — size, shape, frontmatter-parse, link-resolution, index-coverage and supersession checks for a bundle, plus opt-in `--admission`; vendor it and hang it off an existing lint target
 - [`scripts/check_doc_links.py`](scripts/check_doc_links.py) — dead file and heading-anchor links between a repository's own documents, for the guides that sit outside a bundle
+- Both carry `--selftest`, and both run it on the same target as the check itself — see [Designing a check that survives](TOOLING.md#designing-a-check-that-survives)
+- [`.github/workflows/lint.yml`](.github/workflows/lint.yml) — what runs `make lint` when nobody remembers to; see [Making it run without you](ADOPTION.md#making-it-run-without-you)
 
 ## Field reports
 
 Measurements from bundles running this format. A report is evidence, not spec; each carries the disposition of its items, recorded when it merged.
 
 - [`budgets_rewritten`, 2026-08-17](field-reports/2026-08-17-budgets-rewritten-field-report.md) — ten days against a real corpus: the two `FORMAT.md` claims it falsified, what the checks found once they existed, and why one proposed check was declined
+- [`budgets_rewritten`, 2026-09-13](field-reports/2026-09-13-budgets-rewritten-field-report.md) — 27 further days and 950 documents: what a corpus is actually read by, the two pieces of guidance it contradicts, and a defect in this repository's own anchor checker
 
 ## Bundle concept types
 
