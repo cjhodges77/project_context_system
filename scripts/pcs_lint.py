@@ -203,16 +203,25 @@ def wikilinks(line: str, code_spans: list[tuple[int, int]]):
         yield target, any(s <= m.start() < e for s, e in code_spans)
 
 
-def frontmatter(text: str) -> dict:
-    """Enough YAML for `name:` and `aliases:`. Stdlib-only is a hard constraint.
+def frontmatter(text: str) -> tuple[dict, list[str]]:
+    """Enough YAML for `name:` and `aliases:`, plus the keys written twice.
 
     Handles the two spellings a real bundle uses — a block list and an inline
     `[a, b]` — and ignores everything else rather than guessing at it.
+
+    **Both views come out of the same pass on purpose.** A checker that reads a
+    frontmatter block twice — once to collect values, once to count keys — can
+    disagree with itself about what the block says, which is the same defect
+    one layer below the one the duplicate-key check exists to catch. The
+    duplicate count is top-level only, deliberately: this format's own
+    templates carry `type:` at the root *and* under `metadata:`, which is a
+    nesting rather than a collision.
     """
     lines = text.splitlines()
     if not lines or lines[0].strip() != "---":
-        return {}
+        return {}, []
     out: dict = {}
+    counts: dict[str, int] = {}
     key = None
     for line in lines[1:]:
         if line.strip() == "---":
@@ -226,32 +235,13 @@ def frontmatter(text: str) -> dict:
             continue
         key, _, value = line.partition(":")
         key, value = key.strip(), value.strip()
+        if key:
+            counts[key] = counts.get(key, 0) + 1
         if value.startswith("[") and value.endswith("]"):
             out[key] = [v.strip().strip("\"'") for v in value[1:-1].split(",") if v.strip()]
         else:
             out[key] = value.strip("\"'") if value else []
-    return out
-
-
-def duplicate_frontmatter_keys(text: str) -> list[str]:
-    """Top-level keys written twice in one frontmatter block.
-
-    Top-level only, deliberately: this format's own templates carry `type:` at
-    the root *and* under `metadata:`, which is a nesting, not a collision.
-    """
-    lines = text.splitlines()
-    if not lines or lines[0].strip() != "---":
-        return []
-    seen: dict[str, int] = {}
-    for line in lines[1:]:
-        if line.strip() == "---":
-            break
-        if line.startswith((" ", "\t")) or ":" not in line:
-            continue
-        key = line.partition(":")[0].strip()
-        if key:
-            seen[key] = seen.get(key, 0) + 1
-    return [key for key, count in seen.items() if count > 1]
+    return out, [key for key, count in counts.items() if count > 1]
 
 
 def superseded_target(fm: dict) -> str:
@@ -363,7 +353,7 @@ class Doc:
             self.text = path.read_text(encoding="utf-8")
         except UnicodeDecodeError:
             self.text, self.bad_encoding = "", True
-        self.fm = frontmatter(self.text)
+        self.fm, self.fm_duplicates = frontmatter(self.text)
         self.index = is_index(path, extra)
 
     @property
@@ -617,7 +607,7 @@ def check_bundle(root: Path, args: argparse.Namespace) -> tuple[list[Finding], l
             findings.append(Finding("encoding", rel, 0, "not valid UTF-8", rel, quote=False))
             continue
 
-        for key in duplicate_frontmatter_keys(text):
+        for key in doc.fm_duplicates:
             findings.append(Finding(
                 "parse", rel, 0,
                 f"frontmatter declares `{key}:` twice — Obsidian rejects the block outright "

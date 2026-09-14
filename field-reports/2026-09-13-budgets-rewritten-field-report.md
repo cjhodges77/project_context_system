@@ -55,6 +55,7 @@ rewritten to match what was adopted.
 | 3.5 What a ratchet actually produced over 27 days | Adopted as an honesty note | [Three ways to bind forward](../TOOLING.md#three-ways-to-bind-forward) now carries the measured outcome, including that six lowerings banked 341 bytes against 17,544 of growth — so an adopter does not expect the downward arm to act as a brake. |
 | 3.6 `check_doc_links.py` disagrees with GitHub on em-dash anchors | Adopted, fixed | `scripts/check_doc_links.py`. `--selftest` now pins the slugger against ids read from rendered github.com pages, grades the unverified cases separately, and proves the red path both ways; it runs on the lint target. The general clause landed in the fourth property of [Designing a check that survives](../TOOLING.md#designing-a-check-that-survives). |
 | — | **Found while ruling on 3.6** | The same three lines also stripped every underscore as emphasis, where GitHub keeps one inside a word: `budgets_rewritten` anchored as `budgetsrewritten`. Not in the report — found by doing what §3.6 asks and pinning the cases against the ids github.com actually emits for headings in this repository. Both defects were latent, and the pair is the argument for the clause: the first was findable by reading, the second only by asking the consumer. |
+| 4.1 What the layer cost, measured | Recorded, no rule | Not a proposal, and not in this report's own table; its finding is carried where it changes something. **A bundle can be over-enforced and under-read at the same time, and only the second costs per use** closes [What the budgets are sized against](../FORMAT.md#what-the-budgets-are-sized-against). The cost figures are one bundle's own and are deliberately not carried into the guides as targets. |
 | 4.2 "Hang it off a command people already run" needs a level up | Adopted | The third property in [Designing a check that survives](../TOOLING.md#designing-a-check-that-survives) now asks for something other than a person's memory to run the command, and [Making it run without you](../ADOPTION.md#making-it-run-without-you) carries the copyable form, both CI traps, and the question of whether the automatic thing can refuse a merge at all. This repository had exactly the defect described — no `.github`, no hooks — and now runs `make lint` on push and pull request. |
 | 4.3 Corpus liveness as a gate-review criterion | Adopted as tier 3 | [Admitting and retiring a check](../TOOLING.md#admitting-and-retiring-a-check), paired with the admission rule from 2.6, and with the proxy limit kept: a quiet corpus nominates its check for **review**, never for removal. |
 | 5 Deliberately not proposed | Document only, verdicts unchanged | Both previously-declined items stay declined. Two transferable clauses were taken into [Enforcement](../METHODOLOGY.md#enforcement): a reminder hook is only as good as the list that arms it, so that list needs a test; and a guard that fails closed must be exercised on every platform that loads it. The read-side staleness finding is recorded as not a format concern. |
@@ -69,6 +70,15 @@ time that gate has caught a rename it exists because of. Two things this ruling 
 while applying the report: the check-design list said *four properties* above five bullets, a
 hand-stored count of the list beneath it and §2.5's shape exactly, now removed rather than corrected;
 and the `ADOPTION.md` tier anchor §1.1 had to route around is linkable again, so this table uses it.
+
+**Verification owed, discharged.** The two rows this report assigns to the *PCS maintainer* were
+checked while ruling. *"No PCS equivalent exists" for each §2 item* holds, with the one qualification
+the report makes itself — §2.4's property was already half-present as `--selftest`, which is why it
+was adopted as a principle with the vendored script named as its Tier 2 form — and nothing was in
+flight. *The §5 declines* were re-read against the current guides: all six stand, and two of them gave
+up a transferable clause, recorded in the table above. The rows owned by the **source-bundle
+maintainer** are not this repository's to close, which is why every historical figure quoted into the
+guides carries the date it was measured.
 
 ---
 
@@ -821,6 +831,9 @@ report established:
 | Every link and anchor in this file | `[EXEC]` — `python3 scripts/check_doc_links.py .` | — |
 | "No PCS equivalent exists" for each §2 item | `[READ]` — established by grepping this repository's guides at `e118e8a`; a maintainer should confirm nothing in flight covers them | PCS maintainer |
 | The §5 declines | `[READ]` — taken from the previous report's disposition; re-confirm the verdicts still hold | PCS maintainer |
+
+The two rows owned by the PCS maintainer were discharged when this report was ruled on — see
+[the disposition](#0-disposition--recorded-on-merge). The rest stand as filed.
 
 ---
 
