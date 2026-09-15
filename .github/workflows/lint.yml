@@ -1,0 +1,39 @@
+# The checks in this repository ran only when a person typed `make lint`.
+#
+# "Hang it off a command people already run" stops one level short of the
+# property it is reaching for, which is *is it attached to something that runs
+# without anyone deciding to run it*. A bundle can satisfy the rule as written
+# and still be enforced entirely by memory, with exactly the "added cost of
+# looking enforced" the rule warns about. See "Designing a check that survives"
+# in TOOLING.md, and "Making it run without you" in ADOPTION.md.
+#
+# Two things an adopter copying this file should know:
+#
+#   * A workflow *reports*; it does not refuse a merge. Blocking needs the
+#     check marked required in branch protection, which is a paid feature on
+#     some plans. Know which of the two you have before calling a rule enforced.
+#   * A gate that resolves a diff against a base ref needs `fetch-depth: 0`
+#     here. The default shallow checkout of a pull-request merge ref resolves
+#     the base to HEAD itself, so such a gate fails on every run — and a gate
+#     red on a healthy tree is the one that gets switched off.
+name: lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      # The same target a contributor runs locally. If this line and the local
+      # instructions ever differ, the local one is the fiction.
+      - run: make lint

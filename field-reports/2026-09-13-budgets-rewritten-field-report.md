@@ -2,8 +2,8 @@
 
 **Source:** the same private bundle PCS was extracted from, run for a further 27 days after the
 previous report merged as PR #5.
-**Status:** filed, **not ruled on**. The previous report's disposition table is the shape a ruling
-takes; §0 below is the empty version of it, for the session that decides.
+**Status:** ruled on — see [the disposition](#0-disposition--recorded-on-merge). Everything below that
+table is the report as filed; nothing in it was rewritten to match what was adopted.
 
 **What changed in that window.** Thirteen further document gates were built (2026-08-18 → 2026-09-07),
 the corpus passed 950 documents, and — for the first time — something measured **which documents are
@@ -29,29 +29,56 @@ this report, in the source bundle, on macOS.
 
 ---
 
-## 0. Disposition — to be recorded on ruling
+## 0. Disposition — recorded on merge
+
+This document is the recommendation; the table is the ruling, in the shape the previous report's
+disposition took. Everything below it is the report as filed — no figure, verdict or **Con** line was
+rewritten to match what was adopted.
 
 | § | Disposition | Where it landed |
 | --- | --- | --- |
-| 1.1 The vault linker is prescribed and was deleted here | | |
-| 1.2 The graph memory fence was reversed here | | |
-| 1.3 Headings became an egress surface | | |
-| 2.1 Measure reads, don't infer them | | |
-| 2.2 Admission control for indexes | | |
-| 2.3 Diff-scoping as a third way to bind forward | | |
-| 2.4 A gate's proof runs with the gate, from a derived list | | |
-| 2.5 The automation list drifts from the automation | | |
-| 2.6 The enforcement layer measured, not budgeted | | |
-| 2.7 A closed marker set | | |
-| 2.8 Ratchet by read volume, not by layer | | |
-| 3.1 Frontmatter must parse as the consumer parses it | | |
-| 3.2 Lifecycle vocabulary: `shipped` in, `archived` out | | |
-| 3.3 Closing the key-column hole TOOLING already names | | |
-| 3.4 A document enumerating an interface must be derived from it | | |
-| 3.5 What a ratchet actually produced over 27 days | | |
-| 3.6 `check_doc_links.py` disagrees with GitHub on em-dash anchors | | |
-| 4.2 "Hang it off a command people already run" needs a level up | | |
-| 4.3 Corpus liveness as a gate-review criterion | | |
+| 1.1 The vault linker is prescribed and was deleted here | Adopted, as a constraint | [Obsidian](../TOOLING.md#obsidian) keeps the script and adds the property idempotence does not cover: **the vault name is the project's identity, never a path basename**. The stronger form is stated as a choice to weigh — linking belongs to whatever provisions the environment, and a repo-side linker nothing calls is worse than none. The [Tier 3 bullet](../ADOPTION.md#tier-3--registers-research-and-ratchets) and the README tree carry the constraint. Not removed: the advice is still right for a single checkout, which is most adopters. |
+| 1.2 The graph memory fence was reversed here | Adopted, as a decision with a default | [Whether to graph your own memory](../TOOLING.md#whether-to-graph-your-own-memory). Exclude stays the **default** and is now stated as a choice rather than a rule, with both silent traps at the site and the asymmetry that decides the default — a wrong fence fails privacy, not functionality. The structural / relabel / semantic distinction landed there too: what leaves the machine is the question, not whether an LLM is involved. `.claude/` memory is off the blanket exclusion list in TOOLING and ADOPTION. |
+| 1.3 Headings became an egress surface | Adopted, document only | Same section, attached to 1.2 exactly as recommended: bodies stay local, every heading leaves, so heading hygiene is a privacy control rather than a style preference. No check and no new type. |
+| 2.1 Measure reads, don't infer them | Adopted as a method | [What the budgets are sized against](../FORMAT.md#what-the-budgets-are-sized-against), a new subsection under the budgets it corrects, with all three properties stated as requirements on any such measurement — count the subagent sessions, report an auto-loaded file as *not measurable*, and measure before building the instrument. The 446-never-read figure is carried as a signal about retrieval paths, never as a deletion list. `report_doc_usage.py` is **not** adopted: it parses one vendor's transcript format, and `pcs_lint.py` stays stdlib-only and corpus-scoped. Pointed at from [Knowledge layers](../README.md#knowledge-layers) and [Maintaining it](../ADOPTION.md#maintaining-it). |
+| 2.2 Admission control for indexes | Adopted, opt-in | [Reference implementation](../TOOLING.md#reference-implementation) states coverage and admission as the pair they are, with the second-reference reasoning and the self-certifying-evidence failure shipped alongside it. Built as `pcs_lint.py --admission` and mutation-proven both ways. Opt-in for the reason the item's own **Con** gives — it bites hardest on a young bundle — and listed at [Tier 3](../ADOPTION.md#tier-3--registers-research-and-ratchets). |
+| 2.3 Diff-scoping as a third way to bind forward | Adopted | [Three ways to bind forward](../TOOLING.md#three-ways-to-bind-forward), retitled as asked, with both limits: compare the normalised union so a **move is not a touch**, and do not use it where the unit has no identity independent of the diff. The rejection case is kept, because a rule that says where it applies is what makes it safe to adopt. |
+| 2.4 A gate's proof runs with the gate, from a derived list | Adopted as a principle | A sixth property in [Designing a check that survives](../TOOLING.md#designing-a-check-that-survives): run the proof on the same command as the check, and derive that list rather than maintain it. `check_gate_proofs.py` is **not** adopted — build-system-coupled, and it tripled one lint's runtime. Both scripts here now carry `--selftest` as a lint prerequisite, which is the Tier 2 weight of the same property. |
+| 2.5 The automation list drifts from the automation | Adopted as tier 3, generalised | [Derived values](../FORMAT.md#derived-values): a table that enumerates what automation does is a derived value — name the command or check the table. Not built for this repository, as recommended, and the paragraph says so about TOOLING's own hand-maintained automation list. |
+| 2.6 The enforcement layer measured, not budgeted | Adopted into Considered and declined | [Considered and declined](../TOOLING.md#considered-and-declined) gains the second entry the section was argued for, including the mutation-sweep distortion that stops "unbudgeted" from reading as "harmless". Its first replacement commitment — a new check names the defect it has already caught — landed in [Admitting and retiring a check](../TOOLING.md#admitting-and-retiring-a-check). |
+| 2.7 A closed marker set | Adopted as tier 3, stated generically | [Emphasis markers](../FORMAT.md#emphasis-markers): closed, disjoint, defined in one place. The three glyphs are deliberately **not** prescribed. What transfers is the test applied before typing one — name the incident or the measurement, or it is prose. |
+| 2.8 Ratchet by read volume, not by layer | Adopted, tied to 2.1 | Same section as 2.1, phrased as the permission it is rather than a rule: a layer's budget policy is a default, and a measurement overrides it for one document. The trap is stated with it — applied without measurement it degenerates into budgeting whatever feels important. |
+| 3.1 Frontmatter must parse as the consumer parses it | Adopted, and implemented | [Reference implementation](../TOOLING.md#reference-implementation) and [Conformance](../FORMAT.md#conformance), where rule 2's *parseable* is now a property of a named parser and rule 4 requires a link to reach **exactly one** note. `pcs_lint.py` gained a duplicate-key check — scoped to top-level keys, since this format's own templates nest `type:` under `metadata:` — and an ambiguous-link check. §5's half-proposed vault-staleness rule folded in here: name the corpus you measured, not just the parser you measured with. |
+| 3.2 Lifecycle vocabulary: `shipped` in, `archived` out | Adopted | [Status vocabulary](../FORMAT.md#status-vocabulary): `shipped` added, `archived` out as a location rather than a state, `superseded` required to name its successor. The project-memo template carries the vocabulary and the optional pointer. `pcs_lint.py` checks existence, uniqueness and **acyclicity**, and the limit it cannot check — whether a status is true — is stated at the site. |
+| 3.3 Closing the key-column hole TOOLING already names | Adopted as tier 3 | [Optional types for larger bundles](../FORMAT.md#optional-types-for-larger-bundles), beside the register. The general clause was carried up into the fourth check-design property, where it is worth more: **a written limit is a backlog item, not an absolution.** |
+| 3.4 A document enumerating an interface must be derived from it | Adopted as tier 3 | One paragraph in [Original content and restatement](../FORMAT.md#original-content-and-restatement) — the restated thing may be an interface, and the same three options apply. Not a new rule, as recommended. |
+| 3.5 What a ratchet actually produced over 27 days | Adopted as an honesty note | [Three ways to bind forward](../TOOLING.md#three-ways-to-bind-forward) now carries the measured outcome, including that six lowerings banked 341 bytes against 17,544 of growth — so an adopter does not expect the downward arm to act as a brake. |
+| 3.6 `check_doc_links.py` disagrees with GitHub on em-dash anchors | Adopted, fixed | `scripts/check_doc_links.py`. `--selftest` now pins the slugger against ids read from rendered github.com pages, grades the unverified cases separately, and proves the red path both ways; it runs on the lint target. The general clause landed in the fourth property of [Designing a check that survives](../TOOLING.md#designing-a-check-that-survives). |
+| — | **Found while ruling on 3.6** | The same three lines also stripped every underscore as emphasis, where GitHub keeps one inside a word: `budgets_rewritten` anchored as `budgetsrewritten`. Not in the report — found by doing what §3.6 asks and pinning the cases against the ids github.com actually emits for headings in this repository. Both defects were latent, and the pair is the argument for the clause: the first was findable by reading, the second only by asking the consumer. |
+| 4.1 What the layer cost, measured | Recorded, no rule | Not a proposal, and not in this report's own table; its finding is carried where it changes something. **A bundle can be over-enforced and under-read at the same time, and only the second costs per use** closes [What the budgets are sized against](../FORMAT.md#what-the-budgets-are-sized-against). The cost figures are one bundle's own and are deliberately not carried into the guides as targets. |
+| 4.2 "Hang it off a command people already run" needs a level up | Adopted | The third property in [Designing a check that survives](../TOOLING.md#designing-a-check-that-survives) now asks for something other than a person's memory to run the command, and [Making it run without you](../ADOPTION.md#making-it-run-without-you) carries the copyable form, both CI traps, and the question of whether the automatic thing can refuse a merge at all. This repository had exactly the defect described — no `.github`, no hooks — and now runs `make lint` on push and pull request. |
+| 4.3 Corpus liveness as a gate-review criterion | Adopted as tier 3 | [Admitting and retiring a check](../TOOLING.md#admitting-and-retiring-a-check), paired with the admission rule from 2.6, and with the proxy limit kept: a quiet corpus nominates its check for **review**, never for removal. |
+| 5 Deliberately not proposed | Document only, verdicts unchanged | Both previously-declined items stay declined. Two transferable clauses were taken into [Enforcement](../METHODOLOGY.md#enforcement): a reminder hook is only as good as the list that arms it, so that list needs a test; and a guard that fails closed must be exercised on every platform that loads it. The read-side staleness finding is recorded as not a format concern. |
+
+**Tier 3** above means the concept is documented but not recommended for every bundle — the distinction
+[Tiers at a glance](../ADOPTION.md#tiers-at-a-glance) exists to carry.
+
+**Changed on merge.** Renaming *Two ways to bind forward* killed the four inbound links this report
+makes to it. They are repointed and the prose is left as filed, since each sentence is about the
+section as it stood when the report was written. `check_doc_links.py` caught every one — the second
+time that gate has caught a rename it exists because of. Two things this ruling found in the guides
+while applying the report: the check-design list said *four properties* above five bullets, a
+hand-stored count of the list beneath it and §2.5's shape exactly, now removed rather than corrected;
+and the `ADOPTION.md` tier anchor §1.1 had to route around is linkable again, so this table uses it.
+
+**Verification owed, discharged.** The two rows this report assigns to the *PCS maintainer* were
+checked while ruling. *"No PCS equivalent exists" for each §2 item* holds, with the one qualification
+the report makes itself — §2.4's property was already half-present as `--selftest`, which is why it
+was adopted as a principle with the vendored script named as its Tier 2 form — and nothing was in
+flight. *The §5 declines* were re-read against the current guides: all six stand, and two of them gave
+up a transferable clause, recorded in the table above. The rows owned by the **source-bundle
+maintainer** are not this repository's to close, which is why every historical figure quoted into the
+guides carries the date it was measured.
 
 ---
 
@@ -276,7 +303,7 @@ will otherwise repeat.
 
 ### 2.3 Diff-scoping — a third way to bind forward, and the case where it must not be used
 
-**What.** [Two ways to bind forward](../TOOLING.md#two-ways-to-bind-forward) names date-scoping and the
+**What.** [Two ways to bind forward](../TOOLING.md#three-ways-to-bind-forward) names date-scoping and the
 ratchet. There is a third: **scope by the diff**. `check_touched_entries.py` enforces that an index
 entry you **add or modify** comes in under the 400-character cap; pre-existing over-long entries are
 exempt indefinitely. It lands green, it never reddens the back catalogue, and it reduces the corpus at
@@ -313,7 +340,7 @@ re-wrapping; ours treats the same words folded at a different column as untouche
 and non-obvious. It also does nothing in a corpus nobody edits: *reduction happens at the rate the file
 is worked, and if that rate is zero, so is this.*
 
-**Recommendation — Adopt** into [Two ways to bind forward](../TOOLING.md#two-ways-to-bind-forward),
+**Recommendation — Adopt** into [Two ways to bind forward](../TOOLING.md#three-ways-to-bind-forward),
 retitled for three, with both limits stated. The section is already the best-argued part of TOOLING and
 this completes it.
 
@@ -584,7 +611,7 @@ tally — and the same three options apply.*
 ### 3.5 What a ratchet actually produced over 27 days — an honesty report
 
 **What.** Not a proposal. A measurement of PCS's own mechanism, offered because
-[Two ways to bind forward](../TOOLING.md#two-ways-to-bind-forward) makes a specific claim — *"it buys no
+[Two ways to bind forward](../TOOLING.md#three-ways-to-bind-forward) makes a specific claim — *"it buys no
 compaction, it converts drift into a decision"* — and this bundle now has enough history to say what
 that looks like in practice.
 
@@ -616,7 +643,7 @@ also has a standing ruling *against* compacting that file, which removes the mai
 produce lowerings elsewhere.
 
 **Recommendation — Adopt as an honesty note** in
-[Two ways to bind forward](../TOOLING.md#two-ways-to-bind-forward): one line giving a real observed rate
+[Two ways to bind forward](../TOOLING.md#three-ways-to-bind-forward): one line giving a real observed rate
 and outcome, so the claim carries a number. It strengthens the section rather than weakening it.
 
 ### 3.6 A defect in `check_doc_links.py`, found by writing this report
@@ -804,6 +831,9 @@ report established:
 | Every link and anchor in this file | `[EXEC]` — `python3 scripts/check_doc_links.py .` | — |
 | "No PCS equivalent exists" for each §2 item | `[READ]` — established by grepping this repository's guides at `e118e8a`; a maintainer should confirm nothing in flight covers them | PCS maintainer |
 | The §5 declines | `[READ]` — taken from the previous report's disposition; re-confirm the verdicts still hold | PCS maintainer |
+
+The two rows owned by the PCS maintainer were discharged when this report was ruled on — see
+[the disposition](#0-disposition--recorded-on-merge). The rest stand as filed.
 
 ---
 

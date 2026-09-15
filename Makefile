@@ -6,6 +6,10 @@
 # lint target rather than a target of its own — see "Designing a check that
 # survives" in TOOLING.md.
 #
+# Both scripts run their own proof on the same command as the check itself, so
+# a gate cannot outlive the evidence that it still works — the sixth property in
+# "Designing a check that survives".
+#
 # Templates are fragments, not a bundle: their links point at names no file here
 # carries, and no index routes them. Resolution and coverage need a whole corpus,
 # so they are exercised against synthetic bundles in --selftest instead, which
@@ -15,4 +19,5 @@ lint:
 	python3 scripts/pcs_lint.py --selftest
 	python3 scripts/pcs_lint.py templates --no-resolve --no-coverage \
 	    --index index.template.md --index domain_index.template.md
+	python3 scripts/check_doc_links.py --selftest
 	python3 scripts/check_doc_links.py .

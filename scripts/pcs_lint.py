@@ -30,6 +30,13 @@ What it checks
            span, where Obsidian renders no link at all
   index    a leaf in no index, or in two sibling domain indexes
   name     two concepts claiming the same `name:` identity
+  parse    a duplicate top-level frontmatter key, where two widely-used YAML
+           parsers disagree about what the file says
+  life     a `superseded_by:` that resolves to nothing or to two notes, a
+           supersession chain that closes into a loop, or a memo whose status
+           says superseded while naming no successor
+  admit    opt-in: a leaf that reaches an index without any document outside
+           an index referencing it
 
 Why the link and index checks are machine work
 ----------------------------------------------
@@ -52,6 +59,15 @@ by an entry in `aliases:`, and never reads `name:`. A corpus that linked by
 When a target matches some file's `name:`, the finding says so and names the
 repair, because that is the case a reader is most likely to misread as a typo.
 
+**Resolution is only as good as the parse underneath it.** A bundle found 119
+notes whose unquoted `description:` broke YAML parsing, which silently dropped
+their `aliases:` from the consumer's view: every one of them was unreachable by
+alias while looking perfectly correct in the file and in review. Parse the
+frontmatter the way the consumer parses it — Obsidian rejects a duplicate key
+outright where PyYAML keeps the last one, and the permissive parser is the one
+bundles lint with. A link that reaches *two* notes is the same class of defect:
+Obsidian picks one silently, so the link means whichever it picked.
+
 Limits, all deliberate
 ----------------------
 **It checks form, never truth.** A green run does not mean the index is
@@ -64,6 +80,17 @@ carrying a unit (`19,951 bytes`, `~24 KB`, `3 tests`) or forming a tally
 quantity or a currency amount is left alone. That is a proxy: a derived value
 written without a unit passes, and an invented tally that never changes is
 flagged. Precision was chosen over recall on purpose — see below.
+
+**A status can be checked for shape, never for honesty.** `Status: active` on
+an abandoned document passes, and `superseded_by:` is checked for existence,
+uniqueness and acyclicity, never for whether the named successor really
+replaces this document.
+
+**Admission is a routing property, not a quality one.** A weak document with
+two references is admitted and a strong one with a single reference is not, and
+the check only counts references it can resolve inside the corpus. It is opt-in
+because it bites hardest exactly when a bundle is young and legitimately
+writing many documents at once.
 
 **Resolution is judged against the bundle, not a vault.** A bundle symlinked
 into a wider vault may legitimately link outside itself; `--resolve-root` adds
@@ -176,16 +203,25 @@ def wikilinks(line: str, code_spans: list[tuple[int, int]]):
         yield target, any(s <= m.start() < e for s, e in code_spans)
 
 
-def frontmatter(text: str) -> dict:
-    """Enough YAML for `name:` and `aliases:`. Stdlib-only is a hard constraint.
+def frontmatter(text: str) -> tuple[dict, list[str]]:
+    """Enough YAML for `name:` and `aliases:`, plus the keys written twice.
 
     Handles the two spellings a real bundle uses — a block list and an inline
     `[a, b]` — and ignores everything else rather than guessing at it.
+
+    **Both views come out of the same pass on purpose.** A checker that reads a
+    frontmatter block twice — once to collect values, once to count keys — can
+    disagree with itself about what the block says, which is the same defect
+    one layer below the one the duplicate-key check exists to catch. The
+    duplicate count is top-level only, deliberately: this format's own
+    templates carry `type:` at the root *and* under `metadata:`, which is a
+    nesting rather than a collision.
     """
     lines = text.splitlines()
     if not lines or lines[0].strip() != "---":
-        return {}
+        return {}, []
     out: dict = {}
+    counts: dict[str, int] = {}
     key = None
     for line in lines[1:]:
         if line.strip() == "---":
@@ -199,11 +235,25 @@ def frontmatter(text: str) -> dict:
             continue
         key, _, value = line.partition(":")
         key, value = key.strip(), value.strip()
+        if key:
+            counts[key] = counts.get(key, 0) + 1
         if value.startswith("[") and value.endswith("]"):
             out[key] = [v.strip().strip("\"'") for v in value[1:-1].split(",") if v.strip()]
         else:
             out[key] = value.strip("\"'") if value else []
-    return out
+    return out, [key for key, count in counts.items() if count > 1]
+
+
+def superseded_target(fm: dict) -> str:
+    """The note a `superseded_by:` names, with wikilink and anchor spellings off."""
+    raw = fm.get("superseded_by")
+    if not isinstance(raw, str):
+        return ""
+    raw = raw.strip()
+    if raw.startswith("[[") and raw.endswith("]]"):
+        raw = raw[2:-2].strip()
+    raw = raw.split("|", 1)[0].split("#", 1)[0].strip()
+    return "" if PLACEHOLDER.search(raw) else raw
 
 
 def link_spellings(rel_no_ext: str) -> list[str]:
@@ -303,7 +353,7 @@ class Doc:
             self.text = path.read_text(encoding="utf-8")
         except UnicodeDecodeError:
             self.text, self.bad_encoding = "", True
-        self.fm = frontmatter(self.text)
+        self.fm, self.fm_duplicates = frontmatter(self.text)
         self.index = is_index(path, extra)
 
     @property
@@ -311,22 +361,33 @@ class Doc:
         return not self.index and self.path.name != "log.md"
 
 
-def resolution_set(docs: list[Doc], extra_roots: list[Path]) -> tuple[set[str], dict[str, str]]:
-    """Every spelling that resolves, plus a `name:` → file map for repair hints.
+def resolution_set(docs: list[Doc], extra_roots: list[Path]) -> tuple[dict[str, list[str]], dict[str, str]]:
+    """Every spelling that resolves → the notes it reaches, plus a `name:` map.
+
+    The value is a list rather than a flag because **a spelling that reaches
+    two notes is not a link that works.** Obsidian resolves it silently to one
+    of them, so the text says one thing and the graph says another, and review
+    sees neither.
 
     Archived notes are in the resolution set even though they are never linted:
     a live index pointing at archived rationale is the documented shape, not a
     dangling link.
     """
-    resolvable: set[str] = set()
+    owners: dict[str, list[str]] = {}
     by_name: dict[str, str] = {}
+
+    def claim(spelling: str, rel: str) -> None:
+        bucket = owners.setdefault(spelling.strip().lower(), [])
+        if rel not in bucket:
+            bucket.append(rel)
+
     for doc in docs:
         for spelling in link_spellings(doc.key):
-            resolvable.add(spelling.lower())
+            claim(spelling, doc.rel)
         aliases = doc.fm.get("aliases") or []
         for alias in aliases if isinstance(aliases, list) else [aliases]:
             if alias:
-                resolvable.add(str(alias).strip().lower())
+                claim(str(alias), doc.rel)
         name = doc.fm.get("name")
         if isinstance(name, str) and name and not PLACEHOLDER.search(name):
             by_name.setdefault(name.lower(), doc.rel)
@@ -334,8 +395,8 @@ def resolution_set(docs: list[Doc], extra_roots: list[Path]) -> tuple[set[str], 
         for path in extra_root.rglob("*.md"):
             rel = path.relative_to(extra_root).with_suffix("").as_posix()
             for spelling in link_spellings(rel):
-                resolvable.add(spelling.lower())
-    return resolvable, by_name
+                claim(spelling, f"{extra_root}/{rel}.md")
+    return owners, by_name
 
 
 def check_corpus(docs: list[Doc], args: argparse.Namespace) -> list[Finding]:
@@ -359,12 +420,17 @@ def check_corpus(docs: list[Doc], args: argparse.Namespace) -> list[Finding]:
                     quote=False,
                 ))
 
-    resolvable, by_name = set(), {}
+    owners, by_name = {}, {}
     if not args.no_resolve:
-        resolvable, by_name = resolution_set(docs, [Path(r) for r in (args.resolve_root or [])])
+        owners, by_name = resolution_set(docs, [Path(r) for r in (args.resolve_root or [])])
+        findings.extend(check_supersession(docs, owners))
 
     # leaf key -> the index files that route to it
     routed: dict[str, set[str]] = {d.key: set() for d in live if d.leaf}
+    # leaf key -> the *non*-index documents that reference it. An index entry is
+    # the author filing their own work; a reference from anywhere else is the
+    # second, independent one that admission control asks for.
+    cited: dict[str, set[str]] = {d.key: set() for d in live if d.leaf}
     # Every spelling that identifies the leaf counts as routing it, aliases
     # included — otherwise a bundle that links by alias, which is the shape this
     # checker recommends, gets told its leaves are unindexed.
@@ -395,7 +461,7 @@ def check_corpus(docs: list[Doc], args: argparse.Namespace) -> list[Finding]:
                         f"unnoticed; drop the backticks",
                         line,
                     ))
-                elif not args.no_resolve and target.lower() not in resolvable:
+                elif not args.no_resolve and target.lower() not in owners:
                     owner = by_name.get(target.lower())
                     hint = (
                         f"it is the `name:` of {owner}, which Obsidian never reads — add it "
@@ -408,10 +474,20 @@ def check_corpus(docs: list[Doc], args: argparse.Namespace) -> list[Finding]:
                         f"`[[{target}]]` resolves to nothing — {hint}",
                         line,
                     ))
-                if doc.index:
-                    owner_key = spelling_owner.get(target.lower())
-                    if owner_key:
-                        routed[owner_key].add(doc.rel)
+                elif len(owners.get(target.lower(), ())) > 1:
+                    reached = ", ".join(sorted(owners[target.lower()]))
+                    findings.append(Finding(
+                        "link", doc.rel, lineno,
+                        f"`[[{target}]]` reaches {len(owners[target.lower()])} notes "
+                        f"({reached}) — Obsidian picks one silently, so the link means "
+                        f"whichever it picked; spell a longer path or give one a unique alias",
+                        line,
+                    ))
+                owner_key = spelling_owner.get(target.lower())
+                if owner_key and doc.index:
+                    routed[owner_key].add(doc.rel)
+                elif owner_key and owner_key != doc.key:
+                    cited[owner_key].add(doc.rel)
 
     if args.no_coverage:
         return findings
@@ -440,6 +516,76 @@ def check_corpus(docs: list[Doc], args: argparse.Namespace) -> list[Finding]:
                 f"index-many:{doc.key}",
                     quote=False,
             ))
+        # Coverage asks whether a leaf is reachable. Admission asks whether it
+        # earned a place in something that is always loaded. Episodic pruning
+        # cannot beat continuous addition, so the entry condition is where the
+        # size of a loaded index is actually decided.
+        if args.admission and not cited[doc.key]:
+            findings.append(Finding(
+                "admit", doc.rel, 0,
+                "routed from an index with no reference from outside one — a document "
+                "earns a place in an always-loaded index on a second, independent "
+                "reference, because one reference cannot tell a working-set member "
+                "from a bulk load",
+                f"admit:{doc.key}",
+                    quote=False,
+            ))
+    return findings
+
+
+def check_supersession(docs: list[Doc], owners: dict[str, list[str]]) -> list[Finding]:
+    """`superseded_by:` resolves to exactly one note, and no chain closes a loop.
+
+    Archived notes take part: a chain that ends in `archive/` has ended
+    correctly, and one that returns from it has not. The loop case is the one
+    worth the code — **every document in a cycle looks individually fine**, and
+    a reader following the pointers finds no current version at either end.
+    """
+    findings: list[Finding] = []
+    edges: dict[str, str] = {}
+
+    for doc in docs:
+        target = superseded_target(doc.fm)
+        if not target:
+            continue
+        reached = owners.get(target.lower(), [])
+        if not reached:
+            findings.append(Finding(
+                "life", doc.rel, 0,
+                f"`superseded_by: {target}` resolves to nothing — a supersession pointer "
+                f"that lands nowhere retires this document without naming its replacement",
+                f"life-dangling:{doc.rel}",
+                quote=False,
+            ))
+        elif len(reached) > 1:
+            findings.append(Finding(
+                "life", doc.rel, 0,
+                f"`superseded_by: {target}` reaches {len(reached)} notes "
+                f"({', '.join(sorted(reached))}) — supersession needs one successor",
+                f"life-ambiguous:{doc.rel}",
+                quote=False,
+            ))
+        else:
+            edges[doc.rel] = reached[0]
+
+    for start in sorted(edges):
+        chain: list[str] = []
+        node = start
+        while node in edges and node not in chain:
+            chain.append(node)
+            node = edges[node]
+        if node not in chain:
+            continue
+        loop = chain[chain.index(node):]
+        if min(loop) != start:
+            continue  # report each cycle once, from its lowest member
+        findings.append(Finding(
+            "life", start, 0,
+            f"supersession chain closes into a loop ({' → '.join(loop)} → {loop[0]}) — "
+            f"each document in it points at a successor and none of them is current",
+            f"life-cycle:{'|'.join(sorted(loop))}",
+            quote=False,
+        ))
     return findings
 
 
@@ -460,6 +606,16 @@ def check_bundle(root: Path, args: argparse.Namespace) -> tuple[list[Finding], l
         if doc.bad_encoding:
             findings.append(Finding("encoding", rel, 0, "not valid UTF-8", rel, quote=False))
             continue
+
+        for key in doc.fm_duplicates:
+            findings.append(Finding(
+                "parse", rel, 0,
+                f"frontmatter declares `{key}:` twice — Obsidian rejects the block outright "
+                f"where a permissive parser keeps the last value, so the consumer and the "
+                f"linter disagree about what this file says",
+                f"parse-dup:{rel}:{key}",
+                quote=False,
+            ))
 
         index = doc.index
 
@@ -507,6 +663,29 @@ def check_bundle(root: Path, args: argparse.Namespace) -> tuple[list[Finding], l
                         "memo has no `**Status:**` header, so nothing can link to its "
                         "status without copying it",
                         f"owner-none:{rel}",
+                    quote=False,
+                    )
+                )
+
+            # `superseded` is the one status word that makes a promise about
+            # another file. Matched exactly, never against a line that merely
+            # lists the vocabulary — a template offering every value in turn is
+            # not a claim about anything.
+            header = STATUS_HEADER.search(text)
+            # A header with nothing after it is the last line of the file, so
+            # there is no line to read. A linter that raises on a malformed
+            # document is a linter that gets taken out of the lint target.
+            tail = text[header.end():].splitlines() if header else []
+            value = re.sub(r"[*_`]", "", tail[0]) if tail else ""
+            if value.strip().rstrip(".").lower() == "superseded" and not superseded_target(doc.fm):
+                findings.append(
+                    Finding(
+                        "life",
+                        rel,
+                        0,
+                        "status is superseded with no `superseded_by:` — supersession that "
+                        "names no successor is deletion with extra steps",
+                        f"life-nopointer:{rel}",
                     quote=False,
                     )
                 )
@@ -596,13 +775,13 @@ def _default_args(**overrides) -> argparse.Namespace:
     base = dict(
         index=None, index_budget=DEFAULT_INDEX_BUDGET, hard_entry=DEFAULT_HARD_ENTRY,
         soft_entry=DEFAULT_SOFT_ENTRY, require_status=False, resolve_root=None,
-        no_resolve=False, no_coverage=False, no_name=False,
+        no_resolve=False, no_coverage=False, no_name=False, admission=False,
     )
     base.update(overrides)
     return argparse.Namespace(**base)
 
 
-def _run_bundle(files: dict[str, str]) -> list[str]:
+def _run_bundle(files: dict[str, str], **overrides) -> list[str]:
     """Write a bundle to a temp dir and return the check names it fails."""
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp) / "memory"
@@ -610,7 +789,7 @@ def _run_bundle(files: dict[str, str]) -> list[str]:
             target = root / rel
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(body, encoding="utf-8")
-        findings, _ = check_bundle(root, _default_args())
+        findings, _ = check_bundle(root, _default_args(**overrides))
         return sorted({f.check for f in findings})
 
 
@@ -625,7 +804,8 @@ def bundle_selftest() -> list[str]:
     failures: list[str] = []
     ran: list[str] = []
 
-    def case(label: str, expect: str | None, **mutations: str | None):
+    def case(label: str, expect: str | None, _opts: dict | None = None,
+             **mutations: str | None):
         ran.append(label)
         files = dict(HEALTHY_BUNDLE)
         for rel, body in mutations.items():
@@ -634,7 +814,7 @@ def bundle_selftest() -> list[str]:
                 files.pop(rel, None)
             else:
                 files[rel] = body
-        checks = _run_bundle(files)
+        checks = _run_bundle(files, **(_opts or {}))
         if expect is None and checks:
             failures.append(f"{label}: expected green, got {checks}")
         elif expect is not None and expect not in checks:
@@ -676,6 +856,93 @@ def bundle_selftest() -> list[str]:
     # A link out of the bundle is unresolved by default and forgiven with a root.
     case("link outside the bundle", "link",
          index_md=HEALTHY_BUNDLE["index.md"] + "\nSee [[docs/specs/thing]].\n")
+
+    # --- the parse underneath resolution -------------------------------------
+    case("duplicate frontmatter key", "parse",
+         learnings__learnings_example_md=HEALTHY_BUNDLE[
+             "learnings/learnings_example.md"].replace(
+             "name: example-lesson", "name: example-lesson\ntype: learning"))
+
+    # The obvious implementation of the rule above flags this, and this format's
+    # own templates carry it: `type:` at the root and again under `metadata:`.
+    case("same key nested under another is not a duplicate", None,
+         learnings__learnings_example_md=HEALTHY_BUNDLE[
+             "learnings/learnings_example.md"].replace(
+             "name: example-lesson", "name: example-lesson\nmetadata:\n  type: learning"))
+
+    # --- a link that reaches two notes ---------------------------------------
+    TWO_HOMES = dict(HEALTHY_BUNDLE)
+    TWO_HOMES["references/learnings_example.md"] = (
+        "---\ntype: reference\nname: example-source\n---\n\n# Example source\n")
+    TWO_HOMES["index.md"] = (
+        HEALTHY_BUNDLE["index.md"].replace(
+            "[[learnings_example]]", "[[learnings/learnings_example]]")
+        + "- [[references/learnings_example]] — a second note of the same basename\n")
+
+    case("two notes, one basename, both linked unambiguously", None,
+         **{k.replace("/", "__").replace(".md", "_md"): v for k, v in TWO_HOMES.items()})
+
+    case("a wikilink that reaches both of them", "link",
+         **{k.replace("/", "__").replace(".md", "_md"): v for k, v in {
+             **TWO_HOMES,
+             "index.md": TWO_HOMES["index.md"] + "- [[learnings_example]] — ambiguous\n",
+         }.items()})
+
+    # --- supersession ---------------------------------------------------------
+    SUCCESSOR = (
+        "---\ntype: project\nname: successor-workstream\n---\n\n"
+        "# Successor\n\n**Status:** active\n")
+    INDEXED_PAIR = HEALTHY_BUNDLE["index.md"].replace(
+        "- [[project_example]] — what this workstream is for\n",
+        "- [[project_example]] — what this workstream is for\n"
+        "- [[project_successor]] — the workstream that replaced it\n")
+
+    case("a resolvable supersession pointer", None,
+         index_md=INDEXED_PAIR,
+         project__project_successor_md=SUCCESSOR,
+         project__project_example_md=HEALTHY_BUNDLE["project/project_example.md"].replace(
+             "name: example-workstream",
+             "name: example-workstream\nsuperseded_by: project_successor"))
+
+    case("a supersession pointer that lands nowhere", "life",
+         project__project_example_md=HEALTHY_BUNDLE["project/project_example.md"].replace(
+             "name: example-workstream",
+             "name: example-workstream\nsuperseded_by: project_never_written"))
+
+    # Each document in a loop looks individually correct, which is the whole
+    # reason this is machine work.
+    case("a supersession chain that closes into a loop", "life",
+         index_md=INDEXED_PAIR,
+         project__project_successor_md=SUCCESSOR.replace(
+             "name: successor-workstream",
+             "name: successor-workstream\nsuperseded_by: project_example"),
+         project__project_example_md=HEALTHY_BUNDLE["project/project_example.md"].replace(
+             "name: example-workstream",
+             "name: example-workstream\nsuperseded_by: project_successor"))
+
+    # A status header with no value at all, as the file's final line: nothing
+    # to rule on, and nothing to raise on either.
+    case("status header with no value", None,
+         project__project_example_md=HEALTHY_BUNDLE["project/project_example.md"].replace(
+             "**Status:** active\n\nBackground.\n", "Status:"))
+
+    case("status says superseded and names no successor", "life",
+         project__project_example_md=HEALTHY_BUNDLE["project/project_example.md"].replace(
+             "**Status:** active", "**Status:** superseded"))
+
+    # --- admission control, opt-in -------------------------------------------
+    # Coverage asks whether a leaf is reachable. Admission asks whether anything
+    # but its own index entry ever referred to it.
+    case("index entry is the only reference", "admit", _opts={"admission": True})
+
+    case("a second, independent reference admits it", None, _opts={"admission": True},
+         project__project_example_md=HEALTHY_BUNDLE["project/project_example.md"].replace(
+             "Background.", "Background, and the lesson it taught: [[learnings_example]]."),
+         learnings__learnings_example_md=HEALTHY_BUNDLE[
+             "learnings/learnings_example.md"].replace(
+             "A rule.", "A rule, learned in [[project_example]]."))
+
+    case("admission is off unless asked for", None)
 
     return failures, len(ran)
 
@@ -771,6 +1038,10 @@ def main() -> int:
                         help="skip the every-leaf-is-indexed check")
     parser.add_argument("--no-name", action="store_true",
                         help="skip the duplicate `name:` check")
+    parser.add_argument("--admission", action="store_true",
+                        help="also fail a leaf that reaches an index with no reference "
+                             "from outside one (opt-in: it binds inflow, so baseline it "
+                             "or adopt it once the bundle has a ratchet)")
     parser.add_argument("--quiet", action="store_true", help="suppress soft-rule notes")
     parser.add_argument("--selftest", action="store_true", help="check the rules, not a bundle")
     args = parser.parse_args()

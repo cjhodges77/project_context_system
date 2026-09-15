@@ -34,7 +34,7 @@ project/
 │       └── archive/index.md
 ├── graphify-out/
 ├── .graphifyignore
-└── scripts/setup_vault_links.sh
+└── scripts/setup_vault_links.sh   # vault named from project identity, never a path basename
 ```
 
 `.claude/memory/` is the self-contained PCS bundle and unit of distribution. Repository docs and source remain outside the bundle and are identified through frontmatter resources. Directories provide stable categories, lowercase `index.md` files provide progressive disclosure, Obsidian wikilinks provide relationships, and Git provides chronology, attribution, review, and rollback.
@@ -49,7 +49,7 @@ project/
 4. **Canonical documentation** — specs, plans, runbooks, and reference docs remain authoritative for product behavior.
 5. **Code graph** — Graphify answers structural code questions without replacing project history.
 
-Each layer costs maintenance in proportion to how much it restates. Layers that hold original content stay true on their own; layers that hold a restatement of another layer need a link, a derivation, or a check to keep them honest. A bundle that adds a layer should say what makes that layer fail loudly when it diverges — see [Original content and restatement](FORMAT.md#original-content-and-restatement).
+How often each layer is actually read is **measurable rather than assumed** — see [What the budgets are sized against](FORMAT.md#what-the-budgets-are-sized-against). Each layer costs maintenance in proportion to how much it restates. Layers that hold original content stay true on their own; layers that hold a restatement of another layer need a link, a derivation, or a check to keep them honest. A bundle that adds a layer should say what makes that layer fail loudly when it diverges — see [Original content and restatement](FORMAT.md#original-content-and-restatement).
 
 ## Relationship to OKF
 
